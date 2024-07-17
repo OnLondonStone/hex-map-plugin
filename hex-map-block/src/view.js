@@ -21,7 +21,6 @@
  */
 
 /* eslint-disable no-console */
-console.log( 'Hello World! (from create-block-hex-map-block block)' );
 import { Sector } from "./modules/makemap.js";
 import { openTab, allSystemsTable } from "./modules/utilities.js";
 

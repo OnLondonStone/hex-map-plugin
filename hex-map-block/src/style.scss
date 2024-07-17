@@ -35,7 +35,7 @@ g.hex-group{
 }
 .hex-group:hover, .clicked-hex{
     fill: #f4442e;
-    opacity : 0.8
+    opacity : 0.6
 }
 
 #generator-button:hover{
@@ -46,8 +46,13 @@ g.hex-group{
     margin: 0.5em;
     text-align: center;
 }
-#map-section, #map-container{
-    display:inline;
+.map-block{
+    display: inline-block;
+    vertical-align: top;
+}
+
+.tab-content{
+    display: flex;
 }
 
 .info-container{
@@ -56,16 +61,25 @@ g.hex-group{
 #info-box{
     margin:2em;
 }
+#content-container{
+    display: block;
+    overflow-block: auto;
+    scrollbar-color: red orange;
+    scrollbar-width: thin;
+
+}
 .info-table{
-    width:100%
+    width:100%;
+
+
 }
 .info-table, .info-table tr, .info-table td{
     background-color: #878E88;
     margin:0 auto;
     border: 1px solid #C4FFF9;
     padding: 0.5em;
-
 }
+
 button{
     margin:0.5em;
 }

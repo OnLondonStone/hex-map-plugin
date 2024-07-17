@@ -32,7 +32,7 @@ import './editor.scss';
 export default function Edit() {
 	return (
 		<p { ...useBlockProps() }>
-			{ __( 'Hex Map Block – hello from the editor!', 'hex-map-block' ) }
+			{ __('Your map will go here!') }
 		</p>
 	);
 }

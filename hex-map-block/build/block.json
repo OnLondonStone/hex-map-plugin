@@ -6,7 +6,7 @@
   "title": "Hex Map Block",
   "category": "widgets",
   "icon": "smiley",
-  "description": "Example block scaffolded with Create Block tool.",
+  "description": "Drops in the hex map.",
   "example": {},
   "supports": {
     "color": {

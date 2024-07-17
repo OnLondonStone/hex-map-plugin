@@ -39,6 +39,8 @@ function generateMap(e){
     document.getElementById("all-systems").className += " active";
     allSystemsTable(dataContainer.sector.systemList);
 
+    document.getElementById("content-container").style.height=`${document.getElementById("svg-container").offsetHeight}px`;
+
     document.getElementById("run-button").style.display = "block";
     document.getElementById("reset-button").style.display = "block";
 

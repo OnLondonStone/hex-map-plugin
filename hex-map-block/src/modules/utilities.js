@@ -165,6 +165,8 @@ export function allSystemsTable(systemsList){
   let systemsBox = document.getElementById("all-systems-content");
   //Creates table
   let displayTable = document.createElement("table");
+
+  document.getElementById("content-container").style.height=`${document.getElementById("svg-container").offsetHeight}px`;
  
   displayTable.setAttribute("class", "info-table");
   systemsBox.appendChild(displayTable);
