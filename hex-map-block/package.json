@@ -13,6 +13,7 @@
 		"packages-update": "wp-scripts packages-update",
 		"plugin-zip": "wp-scripts plugin-zip",
 		"start": "wp-scripts start --webpack-copy-php"
+		
 	},
 	"devDependencies": {
 		"@wordpress/scripts": "^27.9.0"

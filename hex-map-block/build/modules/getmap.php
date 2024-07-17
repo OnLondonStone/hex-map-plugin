@@ -1,6 +1,4 @@
 <?php
-function get_map_content(){
-    echo "
     <div class = 'button-container' id = 'map-top'>       
     <form id='map-generator'>
       <label>Column:<input type='number' class='map-form' name='col' placeholder='8'></label>
@@ -34,12 +32,5 @@ function get_map_content(){
         <button type='button' name='run-button' id='run-button'>Run Simulation</button>
       </form>
   </div>
-    ";
-}
-
-function get_map_script(){
-    echo "<script type='module' src='./modules/mapcode.js'></script>";
-}
-
 ?>
 

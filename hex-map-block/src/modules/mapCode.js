@@ -7,11 +7,7 @@ export function getSectorData(){
     return sectorMap;
 }
 
-document.getElementById("generator-button").addEventListener('click', generateMap);
-document.getElementById("reset-button").addEventListener('click', resetMap);
-document.getElementById("run-button").addEventListener('click', runSimulation);
-
-function generateMap(e){
+export function generateMap(e){
     const dataContainer = {};
     let gen = e.target.parentElement;
     //Uses default values:
@@ -50,7 +46,7 @@ function generateMap(e){
 }
 
 //Resets map
-function resetMap(){
+export function resetMap(){
     //fix CSS on generator section
     document.getElementById("map-generator").style.display = "inline-flex";
     document.getElementById("run-button").style.display = "none";
@@ -79,7 +75,7 @@ function resetMap(){
         tabLinks[t].style.display = "none";
     }
 }
-function runSimulation(){
+export function runSimulation(){
     const sectorMap = getSectorData();
     const activeHexes = [];
     sectorMap.forEach(checkActiveHex, activeHexes);
@@ -91,11 +87,11 @@ function runSimulation(){
     })
 }
 
-function checkActiveHex(value, key){        
+export function checkActiveHex(value, key){        
     if(value.system){this.push(key)}
 }
 
-function findTradeRoutes(edgeKey, startKey, distance, origin, tradeRoutePoints){
+export function findTradeRoutes(edgeKey, startKey, distance, origin, tradeRoutePoints){
     const sectorMap = getSectorData();
     const start = sectorMap.get(startKey);
     const target = sectorMap.get(edgeKey);
