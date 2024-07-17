@@ -3,8 +3,9 @@
  * @see https://github.com/WordPress/gutenberg/blob/trunk/docs/reference-guides/block-api/block-metadata.md#render
  */
 ?>
-<div <?php echo get_block_wrapper_attributes(); ?> class="container" id="map-main-container">
-    <div class = 'button-container' id = 'map-top'>       
+<div <?php echo get_block_wrapper_attributes(); ?> class="container" id="map-block">
+<div id="map-block-container">
+  <div class = 'button-container' id = 'map-top'>
     <form id='map-generator'>
       <label>Column:<input type='number' class='map-form' name='col' placeholder='8'></label>
       <label>Row:<input type='number' class='map-form' name='row' placeholder='10'></label>
@@ -37,6 +38,8 @@
         <button type='button' name='run-button' id='run-button'>Run Simulation</button>
       </form>
   </div>
+</div>
+</div>
 </div>
 
 
