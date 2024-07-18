@@ -78,12 +78,29 @@ export function resetMap(){
 export function runSimulation(){
     const sectorMap = getSectorData();
     const activeHexes = [];
-    sectorMap.forEach(checkActiveHex, activeHexes);
+    sectorMap.SectorMap.forEach(checkActiveHex, activeHexes);
+    let maxValue = 0;
+    //At some point work out how to make this simpler!
     activeHexes.forEach((hexKey) =>{ 
-        let origin = sectorMap.get(hexKey);
-        let distance = 0;
-        let tradeRoutePoints = [];
-        origin.edges.forEach((edge) => findTradeRoutes(edge, hexKey, distance, origin, tradeRoutePoints));
+        origin = sectorMap.SectorMap.get(hexKey);
+
+        origin.system.economicData.findTradeRoutes(hexKey);
+        origin.system.economicData.tradeRoutes.forEach(
+            (route, routeKey) =>{
+                route.exchangeGoods();
+                sectorMap.TradeMap.set(routeKey, route);
+            });
+    });
+    activeHexes.forEach((hexKey) =>{
+        origin = sectorMap.SectorMap.get(hexKey);
+        origin.system.economicData.tradeRoutes.forEach((route) =>{
+            if(route.tradeRouteVolume > maxValue){maxValue = route.tradeRouteVolume};
+        })
+    })
+    activeHexes.forEach((hexKey) =>{
+        origin = sectorMap.SectorMap.get(hexKey);
+        origin.system.economicData.tradeRoutes.forEach((route) =>{
+            route.drawConnectingLine(maxValue);})
     })
 }
 
@@ -91,28 +108,6 @@ export function checkActiveHex(value, key){
     if(value.system){this.push(key)}
 }
 
-export function findTradeRoutes(edgeKey, startKey, distance, origin, tradeRoutePoints){
-    const sectorMap = getSectorData();
-    const start = sectorMap.get(startKey);
-    const target = sectorMap.get(edgeKey);
-    const continuedDemandArray = [];
 
-    distance ++;
-
-    if(target.system && start.system){start.system.economicData.findTradePartners(start, target, continuedDemandArray)};
-
-    origin.system.economicData.tradeInfo.demand.forEach((demand) =>{
-        if(demand.demandAmount > demand.foundSupply){
-            const index = continuedDemandArray.indexOf(demand.id);
-            if (index > -1){
-                continuedDemandArray.splice(index, 1);
-            }
-            else {continuedDemandArray.push(demand.id);}
-        }
-    })        
-    if (continuedDemandArray.length > 0 && distance < 2){
-        target.edges.forEach((edge) => findTradeRoutes(edge, edgeKey, distance, origin, tradeRoutePoints));
-    }
-}
 
 

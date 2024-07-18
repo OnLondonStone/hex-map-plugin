@@ -1,5 +1,6 @@
 import {TRADECODES, TRADEGOODS, BASICTRADEGOODS} from "./economyConstants.js"
 import { TradeRoute } from "./tradeRoutes.js";
+import { getSectorData } from "./mapCode.js";
 
 export class Economy{
     constructor(techLevel, government, popRoll, tradeCodes){
@@ -10,6 +11,7 @@ export class Economy{
         this.tradeCapacity = this.setTradeCapacity(this.tradeCodes, this.popRoll);
         this.tradeInfo = this.setTradeInfo(this.popRoll, this.tradeCodes, BASICTRADEGOODS);
         this.tradeBalance = 0;
+        this.tradeRange = this.setTradeRange(this.techLevel, this.tradeCodes);
         this.tradeRoutes = new Map ([]);
     }
 
@@ -126,41 +128,56 @@ export class Economy{
         });
        return demand;
     }
-    findTradePartners(origin, target, continuedDemandArray){
-        const originDemands = this.tradeInfo.demand;
-        const originCapacity = this.tradeCapacity;
-        
-        const targetTradeInfo = target.system.economicData.tradeInfo;
+    setTradeRange(tech, tradeCodes){
+        let tradeRange = 2;
 
-        const tradeRouteData = [];
-        let newRoute;
+        if (tradeCodes.includes("Ba")){ tradeRange = 0 };
+        if (tradeCodes.includes("Po")){ tradeRange = 1 };
+        if (tradeCodes.includes("Ri")){ tradeRange = 3 };
 
-        originDemands.forEach((demand) => {
-            let match = targetTradeInfo.supply.find((supply) => supply.id == demand.id);
-            if(match){
-                console.log(`Found Supplier: ${match.good}`)
-                //Instantiates property - move to defines?
-                if(demand.foundSupply == undefined){
-                    demand.foundSupply = 0;
-                }
-                //If demand amount is less than the fulfilled supply
-                if( demand.demandAmount > demand.foundSupply){
-                    let goodsNeeded = demand.demandAmount - demand.foundSupply;
-                    let shippingArray = [goodsNeeded, originCapacity, match.supplyAmount];
-                    let smallest = Math.min(...shippingArray);
-                    //Add in a sold amount in supply - do later.
-                    demand.foundSupply + smallest;
-                    //TEMP - Can improve later for more data
-                    tradeRouteData.push({weight : smallest});
-                }
-                if(demand.demandAmount >= demand.foundSupply){
-                    continuedDemandArray.push(demand.id)
+        //Poss include trade range as a factor
+        return tradeRange;
+    }
+    //findTradeRoutes(hexKey, distance);
+    findTradeRoutes(startKey){
+        const sectorMap = getSectorData();
+        const originSystem = sectorMap.SectorMap.get(startKey);
+        const originDemands = originSystem.system.economicData.tradeInfo.demand;
+        const originSupply = originSystem.system.economicData.tradeInfo.supply;
+
+        let edgesArray = originSystem.edges
+        //Starts the journey at 1 hex distance
+        for(let distance = 0; distance < originSystem.system.economicData.tradeRange; distance ++){
+        edgesArray.forEach((edgeKey) => {
+            let edge = sectorMap.SectorMap.get(edgeKey);
+            if(edge.system && !(edge.system.systemData.tradeCodes.includes("Ba"))){
+                let edgeDemands = edge.system.economicData.tradeInfo.demand;
+                let edgeSupply = edge.system.economicData.tradeInfo.supply;
+
+                let selling = [];
+                let buying = [];
+
+                //Compare originDemands to edgeSupply
+                originDemands.forEach((demand) => {
+                    let match = edgeSupply.find((supply) => supply.id == demand.id);
+                    if(match){
+                        buying.push(match.id);
+                    }})
+
+                //Comapre originSupply to edgeDemands        
+                originSupply.forEach((supply) => {
+                    let match = edgeDemands.find((demand) => demand.id == supply.id);
+                    if(match){
+                        selling.push(match.id);
+                    }
+                })
+                if(selling.length > 0 || buying.length > 0){
+                    //WORKING HERE - build out TradeRoute Object
+                    let tradeData = {sellingIdArray : selling, buyingIdArray : buying};
+                    let newRoute = new TradeRoute(originSystem, edge, tradeData);
+                    originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute)
                 }
             }
-        });
-        if(tradeRouteData.length > 0){
-            newRoute = new TradeRoute(origin, target, tradeRouteData);
-            this.tradeRoutes.set(this.tradeRoutes.length, newRoute);}
-        return continuedDemandArray;
+        })};    
     }
 }

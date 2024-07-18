@@ -14,6 +14,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _economyConstants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./economyConstants.js */ "./src/modules/economyConstants.js");
 /* harmony import */ var _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./tradeRoutes.js */ "./src/modules/tradeRoutes.js");
+/* harmony import */ var _mapCode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mapCode.js */ "./src/modules/mapCode.js");
+
 
 
 class Economy {
@@ -25,6 +27,7 @@ class Economy {
     this.tradeCapacity = this.setTradeCapacity(this.tradeCodes, this.popRoll);
     this.tradeInfo = this.setTradeInfo(this.popRoll, this.tradeCodes, _economyConstants_js__WEBPACK_IMPORTED_MODULE_0__.BASICTRADEGOODS);
     this.tradeBalance = 0;
+    this.tradeRange = this.setTradeRange(this.techLevel, this.tradeCodes);
     this.tradeRoutes = new Map([]);
   }
   setTradeCapacity(tradeCodes, pop) {
@@ -153,42 +156,69 @@ class Economy {
     });
     return demand;
   }
-  findTradePartners(origin, target, continuedDemandArray) {
-    const originDemands = this.tradeInfo.demand;
-    const originCapacity = this.tradeCapacity;
-    const targetTradeInfo = target.system.economicData.tradeInfo;
-    const tradeRouteData = [];
-    let newRoute;
-    originDemands.forEach(demand => {
-      let match = targetTradeInfo.supply.find(supply => supply.id == demand.id);
-      if (match) {
-        console.log(`Found Supplier: ${match.good}`);
-        //Instantiates property - move to defines?
-        if (demand.foundSupply == undefined) {
-          demand.foundSupply = 0;
-        }
-        //If demand amount is less than the fulfilled supply
-        if (demand.demandAmount > demand.foundSupply) {
-          let goodsNeeded = demand.demandAmount - demand.foundSupply;
-          let shippingArray = [goodsNeeded, originCapacity, match.supplyAmount];
-          let smallest = Math.min(...shippingArray);
-          //Add in a sold amount in supply - do later.
-          demand.foundSupply + smallest;
-          //TEMP - Can improve later for more data
-          tradeRouteData.push({
-            weight: smallest
-          });
-        }
-        if (demand.demandAmount >= demand.foundSupply) {
-          continuedDemandArray.push(demand.id);
-        }
-      }
-    });
-    if (tradeRouteData.length > 0) {
-      newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(origin, target, tradeRouteData);
-      this.tradeRoutes.set(this.tradeRoutes.length, newRoute);
+  setTradeRange(tech, tradeCodes) {
+    let tradeRange = 2;
+    if (tradeCodes.includes("Ba")) {
+      tradeRange = 0;
     }
-    return continuedDemandArray;
+    ;
+    if (tradeCodes.includes("Po")) {
+      tradeRange = 1;
+    }
+    ;
+    if (tradeCodes.includes("Ri")) {
+      tradeRange = 3;
+    }
+    ;
+
+    //Poss include trade range as a factor
+    return tradeRange;
+  }
+  //findTradeRoutes(hexKey, distance);
+  findTradeRoutes(startKey) {
+    const sectorMap = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_2__.getSectorData)();
+    const originSystem = sectorMap.SectorMap.get(startKey);
+    const originDemands = originSystem.system.economicData.tradeInfo.demand;
+    const originSupply = originSystem.system.economicData.tradeInfo.supply;
+    let edgesArray = originSystem.edges;
+    //Starts the journey at 1 hex distance
+    for (let distance = 0; distance < originSystem.system.economicData.tradeRange; distance++) {
+      edgesArray.forEach(edgeKey => {
+        let edge = sectorMap.SectorMap.get(edgeKey);
+        if (edge.system && !edge.system.systemData.tradeCodes.includes("Ba")) {
+          let edgeDemands = edge.system.economicData.tradeInfo.demand;
+          let edgeSupply = edge.system.economicData.tradeInfo.supply;
+          let selling = [];
+          let buying = [];
+
+          //Compare originDemands to edgeSupply
+          originDemands.forEach(demand => {
+            let match = edgeSupply.find(supply => supply.id == demand.id);
+            if (match) {
+              buying.push(match.id);
+            }
+          });
+
+          //Comapre originSupply to edgeDemands        
+          originSupply.forEach(supply => {
+            let match = edgeDemands.find(demand => demand.id == supply.id);
+            if (match) {
+              selling.push(match.id);
+            }
+          });
+          if (selling.length > 0 || buying.length > 0) {
+            //WORKING HERE - build out TradeRoute Object
+            let tradeData = {
+              sellingIdArray: selling,
+              buyingIdArray: buying
+            };
+            let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(originSystem, edge, tradeData);
+            originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
+          }
+        }
+      });
+    }
+    ;
   }
 }
 
@@ -715,7 +745,8 @@ class Sector {
 
   //Creates 
   makeSectorMap(col, row, scale) {
-    let SectorMap = new Map();
+    const SectorMap = new Map();
+    const TradeMap = new Map();
     let hexContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     hexContainer.setAttribute("id", "hex-container");
     hexContainer.id = "hex-container";
@@ -727,50 +758,40 @@ class Sector {
     let svgWidth = (col + 0.5) * (3 / 2 * r) + margin * 2;
     document.getElementById("hex-container").setAttribute("height", `${Math.floor(svgHeight)}`);
     document.getElementById("hex-container").setAttribute("width", `${Math.floor(svgWidth)}`);
-    let tradeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    tradeGroup.setAttribute("id", "trade-group");
-    hexContainer.appendChild(tradeGroup);
+
+    //Switching order of hex and trade group makes each clickable - implement toggle?
+
     let hexGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     hexGroup.setAttribute("id", "hex-group");
     hexContainer.appendChild(hexGroup);
+    let tradeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    tradeGroup.setAttribute("id", "trade-group");
+    hexContainer.appendChild(tradeGroup);
     for (let c = 0; c < col; c++) {
       let colNum = c + 1;
       for (let r = 0; r < row; r++) {
         let rowNum = r + 1;
         let hex = new Hex(colNum, rowNum, scale);
-        let key = [colNum, rowNum];
-        SectorMap.set(key, hex);
+        SectorMap.set(hex.hexKey, hex);
       }
     }
-    SectorMap.forEach((value, key, map) => {
-      let edges = [];
-      let directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[0];
-      if (value.col % 2 != 0) {
-        directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[1];
-      }
-      directionArray.forEach(direction => {
-        let edgeCol = value.col + direction[0];
-        let edgeRow = value.row + direction[1];
-        if (edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row) {
-          SectorMap.forEach((value, key) => {
-            if (value.col == edgeCol && value.row == edgeRow) {
-              edges.push(key);
-            }
-          });
-        }
-      });
-      value.edges = edges;
+    SectorMap.forEach(hex => {
+      hex.edges = hex.setEdges(this.col, this.row, hex, SectorMap);
     });
-    return SectorMap;
+    return {
+      SectorMap: SectorMap,
+      TradeMap: TradeMap
+    };
   }
+  //Merge into above for each
   makeSystemList(Sector) {
     let systemList = new Map();
     let listKey = 0;
-    Sector.forEach((hex, systemKey) => {
-      if (hex.system != null) {
+    Sector.SectorMap.forEach((hex, systemKey) => {
+      if (hex.system) {
         let tableRow = {
           localID: systemKey,
-          hex: hex.system.id,
+          hex: hex.id,
           name: hex.system.tableData.Name,
           uwp: hex.system.tableData.UWP
         };
@@ -786,9 +807,11 @@ class Hex {
   constructor(col, row, hexSize) {
     this.col = col;
     this.row = row;
+    this.hexKey = [col, row];
     this.hexSize = hexSize;
     this.centerPoint = this.hexCenter();
     this.axialCoord = this.oddqToAxial();
+    this.edges;
     this.id = `${this.col - 1}, ${this.row - 1}`;
     this.system = this.setSystem(this.id, this.centerPoint);
     this.init();
@@ -926,6 +949,153 @@ class Hex {
     mark.setAttribute("r", 10);
     mark.setAttribute("id", "marker");
     newHex.appendChild(mark);
+  }
+  setEdges(col, row, hex, SectorMap) {
+    let edges = [];
+    let directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[0];
+    if (hex.col % 2 != 0) {
+      directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[1];
+    }
+    directionArray.forEach(direction => {
+      let edgeCol = hex.col + direction[0];
+      let edgeRow = hex.row + direction[1];
+      if (edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row) {
+        SectorMap.forEach((hex, key) => {
+          if (hex.col == edgeCol && hex.row == edgeRow) {
+            edges.push(key);
+          }
+        });
+      }
+    });
+    return edges;
+  }
+}
+
+/***/ }),
+
+/***/ "./src/modules/mapCode.js":
+/*!********************************!*\
+  !*** ./src/modules/mapCode.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   checkActiveHex: () => (/* binding */ checkActiveHex),
+/* harmony export */   generateMap: () => (/* binding */ generateMap),
+/* harmony export */   getSectorData: () => (/* binding */ getSectorData),
+/* harmony export */   resetMap: () => (/* binding */ resetMap),
+/* harmony export */   runSimulation: () => (/* binding */ runSimulation)
+/* harmony export */ });
+/* harmony import */ var _makemap_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./makemap.js */ "./src/modules/makemap.js");
+/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities.js */ "./src/modules/utilities.js");
+
+
+function getSectorData() {
+  const sectorData = document.getElementById("hex-container").sectorDataContainer;
+  const sectorMap = sectorData.sector.SectorMap;
+  return sectorMap;
+}
+function generateMap(e) {
+  const dataContainer = {};
+  let gen = e.target.parentElement;
+  //Uses default values:
+  let col = gen.col.value;
+  let row = gen.row.value;
+  let scale = gen.scale.value;
+  //Gets user input col and row values or uses default:
+  if (!col) {
+    col = 8;
+  }
+  if (!row) {
+    row = 10;
+  }
+  if (!scale) {
+    scale = 40;
+  }
+  if (document.querySelectorAll("#hex-container").length === 0) {
+    dataContainer.sector = new _makemap_js__WEBPACK_IMPORTED_MODULE_0__.Sector(col, row, scale);
+  }
+  //Creates Tab Display
+  document.getElementById("tab-display").style.display = "block";
+  let tab = document.getElementsByClassName("tab-links");
+  for (let t = 0; t < tab.length; t++) {
+    tab[t].style.display = "block";
+    tab[t].addEventListener('click', _utilities_js__WEBPACK_IMPORTED_MODULE_1__.openTab);
+  }
+  let tabLinks = document.getElementsByClassName("tab-links");
+  for (let i = 0; i < tabLinks.length; i++) {
+    tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+  }
+  document.getElementById("all-systems").className += " active";
+  (0,_utilities_js__WEBPACK_IMPORTED_MODULE_1__.allSystemsTable)(dataContainer.sector.systemList);
+  document.getElementById("content-container").style.height = `${document.getElementById("svg-container").offsetHeight}px`;
+  document.getElementById("run-button").style.display = "block";
+  document.getElementById("reset-button").style.display = "block";
+
+  //Hides Map Generator div
+  document.getElementById("map-generator").style.display = "none";
+  document.getElementById("hex-container").sectorDataContainer = dataContainer;
+}
+
+//Resets map
+function resetMap() {
+  //fix CSS on generator section
+  document.getElementById("map-generator").style.display = "inline-flex";
+  document.getElementById("run-button").style.display = "none";
+  document.getElementById("reset-button").style.display = "none";
+  if (document.getElementById("system-information-content") !== null) {
+    let systemContent = document.getElementById("system-information-content");
+    let oldSystem = systemContent.firstElementChild;
+    let allContent = document.getElementById("all-systems-content");
+    let oldAll = allContent.firstElementChild;
+    if (oldSystem !== null) systemContent.removeChild(oldSystem);
+    if (oldAll !== null) allContent.removeChild(oldAll);
+  }
+  if (document.querySelectorAll("#hex-container").length > 0) {
+    let mapContainer = document.getElementById("svg-container");
+    let map = document.getElementById("hex-container");
+    mapContainer.removeChild(map);
+  }
+  document.getElementById("tab-display").style.display = "none";
+  let tabLinks = document.getElementsByClassName("tab-links");
+  for (let t = 0; t < tabLinks.length; t++) {
+    tabLinks[t].style.display = "none";
+  }
+}
+function runSimulation() {
+  const sectorMap = getSectorData();
+  const activeHexes = [];
+  sectorMap.SectorMap.forEach(checkActiveHex, activeHexes);
+  let maxValue = 0;
+  //At some point work out how to make this simpler!
+  activeHexes.forEach(hexKey => {
+    origin = sectorMap.SectorMap.get(hexKey);
+    origin.system.economicData.findTradeRoutes(hexKey);
+    origin.system.economicData.tradeRoutes.forEach((route, routeKey) => {
+      route.exchangeGoods();
+      sectorMap.TradeMap.set(routeKey, route);
+    });
+  });
+  activeHexes.forEach(hexKey => {
+    origin = sectorMap.SectorMap.get(hexKey);
+    origin.system.economicData.tradeRoutes.forEach(route => {
+      if (route.tradeRouteVolume > maxValue) {
+        maxValue = route.tradeRouteVolume;
+      }
+      ;
+    });
+  });
+  activeHexes.forEach(hexKey => {
+    origin = sectorMap.SectorMap.get(hexKey);
+    origin.system.economicData.tradeRoutes.forEach(route => {
+      route.drawConnectingLine(maxValue);
+    });
+  });
+}
+function checkActiveHex(value, key) {
+  if (value.system) {
+    this.push(key);
   }
 }
 
@@ -1482,36 +1652,106 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   TradeRoute: () => (/* binding */ TradeRoute)
 /* harmony export */ });
 class TradeRoute {
-  constructor(origin, target, tradeRouteData) {
-    this.originId = origin.id;
-    this.targetId = target.id;
-    this.originCenterPoint = origin.centerPoint;
-    this.targetCenterPoint = target.centerPoint;
-    this.data = tradeRouteData;
-    this.trafficWeight = this.setTrafficWeight(this.data);
-    this.drawConnectingLine(this.originId, this.targetId, this.originCenterPoint, this.targetCenterPoint, this.trafficWeight);
+  constructor(startHex, endHex, tradeData) {
+    this.startId = startHex.id;
+    this.endId = endHex.id;
+    this.startCenterPoint = startHex.centerPoint;
+    this.endCenterPoint = endHex.centerPoint;
+    this.routeKey = this.startId + " <=> " + this.endId;
+    this.startTradeInfo = startHex.system.economicData.tradeInfo;
+    this.endTradeInfo = endHex.system.economicData.tradeInfo;
+    this.startTradeData = tradeData;
+    this.routeTradeCapacity = this.setHighestTradeCapacity(startHex.system.economicData.tradeCapacity, endHex.system.economicData.tradeCapacity);
+    this.tradeRouteVolume = 0;
+    this.tradeRouteProfit = 0;
+    this.tradeRouteDetails = [];
   }
-  setTrafficWeight(data) {
-    let total = 0;
-    data.forEach(item => {
-      total = item.weight + total;
+  setHighestTradeCapacity(startCapacity, endCapacity) {
+    if (startCapacity >= endCapacity) {
+      return startCapacity;
+    } else return endCapacity;
+  }
+  exchangeGoods() {
+    this.startTradeData.sellingIdArray.forEach(id => {
+      let sellGood = this.startTradeInfo.supply.find(good => good.id == id);
+      let buyGood = this.endTradeInfo.demand.find(good => good.id == id);
+      let type = `sell`;
+      if (sellGood != undefined && buyGood != undefined) {
+        this.calculateSale(id, sellGood, buyGood, type);
+      }
     });
-    return total;
+    this.startTradeData.buyingIdArray.forEach(id => {
+      let buyGood = this.startTradeInfo.demand.find(good => good.id == id);
+      let sellGood = this.endTradeInfo.supply.find(good => good.id == id);
+      let type = `buy`;
+      if (sellGood && buyGood) {
+        this.calculateSale(id, sellGood, buyGood, type);
+      }
+    });
   }
-  drawConnectingLine(originId, targetId, originCenterPoint, targetCenterPoint, width) {
-    const tradeGroup = document.getElementById("trade-group");
-    if (width > 10) {
-      width = 10;
+  calculateSale(id, sellGood, buyGood, type) {
+    //This is where dynamic pricing would go - IF I HAD ANY
+    let maxSellOffer = sellGood.supplyAmount;
+    let maxBuyOffer = buyGood.demandAmount;
+    let tradeCapacity = this.routeTradeCapacity;
+    let exchangeArray = [maxSellOffer, maxBuyOffer, tradeCapacity];
+    let offerAmount = Math.min(...exchangeArray);
+    let sellPrice = buyGood.price;
+    let profit = buyGood.price - sellGood.price;
+
+    //THIS IS WHERE YOU CAN ABORT THE SALE
+    //TEMP VALUE
+    let sale = true;
+    if (sale = true) {
+      maxSellOffer -= offerAmount;
+      maxBuyOffer -= offerAmount;
+      this.tradeRouteVolume += offerAmount;
+      this.tradeRouteProfit += profit;
+      this.tradeRouteDetails.push({
+        exchangeType: type,
+        goodId: id,
+        offerAmount: offerAmount,
+        sellPrice: sellPrice,
+        profit: profit
+      });
     }
+  }
+  drawConnectingLine(maxValue) {
+    const startCenterPoint = this.startCenterPoint;
+    const endCenterPoint = this.endCenterPoint;
+    const width = this.calculateTradeRouteWidth(this.tradeRouteVolume, maxValue);
+    const routeKey = this.routeKey;
+    const tradeGroup = document.getElementById("trade-group");
     let newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    newLine.setAttribute("x1", `${originCenterPoint.x}`);
-    newLine.setAttribute("y1", `${originCenterPoint.y}`);
-    newLine.setAttribute("x2", `${targetCenterPoint.x}`);
-    newLine.setAttribute("y2", `${targetCenterPoint.y}`);
+    newLine.setAttribute("x1", `${startCenterPoint.x}`);
+    newLine.setAttribute("y1", `${startCenterPoint.y}`);
+    newLine.setAttribute("x2", `${endCenterPoint.x}`);
+    newLine.setAttribute("y2", `${endCenterPoint.y}`);
     newLine.setAttribute("class", "tradeLine");
-    newLine.setAttribute("id", `{origin : ${originId}, destination : ${targetId}}`);
+    newLine.setAttribute("id", routeKey);
     newLine.setAttribute("style", `stroke:red; stroke-width: ${width}`);
+    newLine.addEventListener("click", this.tradeRouteOnClick);
     tradeGroup.appendChild(newLine);
+  }
+  calculateTradeRouteWidth(routeValue, maxValue) {
+    let maxWidth = 20;
+    let width;
+    //Oh god, basic maths
+    let min = maxValue / 100;
+    let widthPercent = routeValue / (min * 100);
+    console.log(widthPercent); //Working
+    width = Math.tanh(widthPercent) * 20;
+    if (width < 4) {
+      width = 4;
+    }
+    ;
+    return width;
+  }
+  tradeRouteOnClick() {
+    const SectorTradeRoutes = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.TradeMap;
+    console.log(this.id);
+    let clickedRoute = SectorTradeRoutes.get(this.id);
+    console.log(clickedRoute);
   }
 }
 
@@ -1784,135 +2024,12 @@ function allSystemsTable(systemsList) {
 /******/ 	})();
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-/*!********************************!*\
-  !*** ./src/modules/mapCode.js ***!
-  \********************************/
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   checkActiveHex: () => (/* binding */ checkActiveHex),
-/* harmony export */   findTradeRoutes: () => (/* binding */ findTradeRoutes),
-/* harmony export */   generateMap: () => (/* binding */ generateMap),
-/* harmony export */   getSectorData: () => (/* binding */ getSectorData),
-/* harmony export */   resetMap: () => (/* binding */ resetMap),
-/* harmony export */   runSimulation: () => (/* binding */ runSimulation)
-/* harmony export */ });
-/* harmony import */ var _makemap_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./makemap.js */ "./src/modules/makemap.js");
-/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities.js */ "./src/modules/utilities.js");
-
-
-function getSectorData() {
-  const sectorData = document.getElementById("hex-container").sectorDataContainer;
-  const sectorMap = sectorData.sector.SectorMap;
-  return sectorMap;
-}
-function generateMap(e) {
-  const dataContainer = {};
-  let gen = e.target.parentElement;
-  //Uses default values:
-  let col = gen.col.value;
-  let row = gen.row.value;
-  let scale = gen.scale.value;
-  //Gets user input col and row values or uses default:
-  if (!col) {
-    col = 8;
-  }
-  if (!row) {
-    row = 10;
-  }
-  if (!scale) {
-    scale = 40;
-  }
-  if (document.querySelectorAll("#hex-container").length === 0) {
-    dataContainer.sector = new _makemap_js__WEBPACK_IMPORTED_MODULE_0__.Sector(col, row, scale);
-  }
-  //Creates Tab Display
-  document.getElementById("tab-display").style.display = "block";
-  let tab = document.getElementsByClassName("tab-links");
-  for (let t = 0; t < tab.length; t++) {
-    tab[t].style.display = "block";
-    tab[t].addEventListener('click', _utilities_js__WEBPACK_IMPORTED_MODULE_1__.openTab);
-  }
-  let tabLinks = document.getElementsByClassName("tab-links");
-  for (let i = 0; i < tabLinks.length; i++) {
-    tabLinks[i].className = tabLinks[i].className.replace(" active", "");
-  }
-  document.getElementById("all-systems").className += " active";
-  (0,_utilities_js__WEBPACK_IMPORTED_MODULE_1__.allSystemsTable)(dataContainer.sector.systemList);
-  document.getElementById("content-container").style.height = `${document.getElementById("svg-container").offsetHeight}px`;
-  document.getElementById("run-button").style.display = "block";
-  document.getElementById("reset-button").style.display = "block";
-
-  //Hides Map Generator div
-  document.getElementById("map-generator").style.display = "none";
-  document.getElementById("hex-container").sectorDataContainer = dataContainer;
-}
-
-//Resets map
-function resetMap() {
-  //fix CSS on generator section
-  document.getElementById("map-generator").style.display = "inline-flex";
-  document.getElementById("run-button").style.display = "none";
-  document.getElementById("reset-button").style.display = "none";
-  if (document.getElementById("system-information-content") !== null) {
-    let systemContent = document.getElementById("system-information-content");
-    let oldSystem = systemContent.firstElementChild;
-    let allContent = document.getElementById("all-systems-content");
-    let oldAll = allContent.firstElementChild;
-    if (oldSystem !== null) systemContent.removeChild(oldSystem);
-    if (oldAll !== null) allContent.removeChild(oldAll);
-  }
-  if (document.querySelectorAll("#hex-container").length > 0) {
-    let mapContainer = document.getElementById("svg-container");
-    let map = document.getElementById("hex-container");
-    mapContainer.removeChild(map);
-  }
-  document.getElementById("tab-display").style.display = "none";
-  let tabLinks = document.getElementsByClassName("tab-links");
-  for (let t = 0; t < tabLinks.length; t++) {
-    tabLinks[t].style.display = "none";
-  }
-}
-function runSimulation() {
-  const sectorMap = getSectorData();
-  const activeHexes = [];
-  sectorMap.forEach(checkActiveHex, activeHexes);
-  activeHexes.forEach(hexKey => {
-    let origin = sectorMap.get(hexKey);
-    let distance = 0;
-    let tradeRoutePoints = [];
-    origin.edges.forEach(edge => findTradeRoutes(edge, hexKey, distance, origin, tradeRoutePoints));
-  });
-}
-function checkActiveHex(value, key) {
-  if (value.system) {
-    this.push(key);
-  }
-}
-function findTradeRoutes(edgeKey, startKey, distance, origin, tradeRoutePoints) {
-  const sectorMap = getSectorData();
-  const start = sectorMap.get(startKey);
-  const target = sectorMap.get(edgeKey);
-  const continuedDemandArray = [];
-  distance++;
-  if (target.system && start.system) {
-    start.system.economicData.findTradePartners(start, target, continuedDemandArray);
-  }
-  ;
-  origin.system.economicData.tradeInfo.demand.forEach(demand => {
-    if (demand.demandAmount > demand.foundSupply) {
-      const index = continuedDemandArray.indexOf(demand.id);
-      if (index > -1) {
-        continuedDemandArray.splice(index, 1);
-      } else {
-        continuedDemandArray.push(demand.id);
-      }
-    }
-  });
-  if (continuedDemandArray.length > 0 && distance < 2) {
-    target.edges.forEach(edge => findTradeRoutes(edge, edgeKey, distance, origin, tradeRoutePoints));
-  }
-}
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__("./src/modules/mapCode.js");
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=mapCode.js.map

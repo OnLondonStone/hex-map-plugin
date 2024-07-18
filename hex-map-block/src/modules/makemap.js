@@ -14,7 +14,8 @@ export class Sector{
 
     //Creates 
     makeSectorMap(col, row, scale){
-        let SectorMap = new Map();
+        const SectorMap = new Map();
+        const TradeMap = new Map();
         let hexContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         hexContainer.setAttribute("id", "hex-container");
         hexContainer.id = "hex-container";
@@ -26,15 +27,16 @@ export class Sector{
         let svgWidth = ((col + 0.5) * (3/2 * r) + (margin*2));
         document.getElementById("hex-container").setAttribute("height", `${Math.floor(svgHeight)}`);
         document.getElementById("hex-container").setAttribute("width", `${Math.floor(svgWidth)}`);
-
-
-        let tradeGroup = document.createElementNS("http://www.w3.org/2000/svg","g");
-        tradeGroup.setAttribute("id", "trade-group");
-        hexContainer.appendChild(tradeGroup);
+        
+        //Switching order of hex and trade group makes each clickable - implement toggle?
 
         let hexGroup = document.createElementNS("http://www.w3.org/2000/svg","g");
         hexGroup.setAttribute("id", "hex-group");
         hexContainer.appendChild(hexGroup);
+
+        let tradeGroup = document.createElementNS("http://www.w3.org/2000/svg","g");
+        tradeGroup.setAttribute("id", "trade-group");
+        hexContainer.appendChild(tradeGroup);
 
 
 
@@ -43,33 +45,20 @@ export class Sector{
             for (let r = 0; r < row; r++){
                 let rowNum = r + 1;
                 let hex = new Hex(colNum, rowNum, scale);
-                let key = [colNum, rowNum];
-                SectorMap.set(key, hex);
+                SectorMap.set(hex.hexKey, hex);
             }
         }
-        SectorMap.forEach((value, key, map)=>{ 
-            let edges = [];
-            let directionArray = oddq_direction_differences[0];
-            if(value.col % 2 != 0){
-                directionArray = oddq_direction_differences[1];}
+        SectorMap.forEach((hex)=>{hex.edges = hex.setEdges(this.col, this.row, hex, SectorMap)});
 
-            directionArray.forEach((direction) => {
-                let edgeCol = value.col + direction[0];
-                let edgeRow = value.row + direction[1];
-                if(edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row){
-                    SectorMap.forEach((value, key)=>{if(value.col == edgeCol && value.row == edgeRow){edges.push(key)}})
-                }})
-        value.edges = edges;
-        });
-        return SectorMap;
+        return {SectorMap : SectorMap, TradeMap : TradeMap};
     }
-
+    //Merge into above for each
     makeSystemList(Sector){
         let systemList = new Map();
         let listKey = 0;
-        Sector.forEach((hex, systemKey) => {
-            if(hex.system != null){
-                let tableRow = {localID: systemKey, hex: hex.system.id, name: hex.system.tableData.Name, uwp: hex.system.tableData.UWP};
+        Sector.SectorMap.forEach((hex, systemKey) => {
+            if(hex.system){
+                let tableRow = {localID: systemKey, hex: hex.id, name: hex.system.tableData.Name, uwp: hex.system.tableData.UWP};
                 systemList.set(listKey, tableRow);
                 listKey ++;
             }
@@ -82,9 +71,11 @@ export class Hex {
     constructor(col, row, hexSize){
         this.col = col;
         this.row = row;
+        this.hexKey = [col, row];
         this.hexSize = hexSize;
         this.centerPoint = this.hexCenter();
         this.axialCoord = this.oddqToAxial();
+        this.edges;
         this.id = `${this.col - 1}, ${this.row - 1}`;
         this.system = this.setSystem(this.id, this.centerPoint);
         this.init();
@@ -186,5 +177,20 @@ export class Hex {
         mark.setAttribute("r", 10);
         mark.setAttribute("id", "marker");
         newHex.appendChild(mark);
+    }
+    setEdges(col, row, hex, SectorMap){
+        let edges = [];
+
+        let directionArray = oddq_direction_differences[0];
+        if(hex.col % 2 != 0){
+            directionArray = oddq_direction_differences[1];}          
+
+        directionArray.forEach((direction) => {
+            let edgeCol = hex.col + direction[0];
+            let edgeRow = hex.row + direction[1];
+            if(edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row){
+                SectorMap.forEach((hex, key)=>{if(hex.col == edgeCol && hex.row == edgeRow){edges.push(key)}})
+            }})
+        return edges;
     }
 }
