@@ -181,15 +181,18 @@ class Economy {
     const originDemands = originSystem.system.economicData.tradeInfo.demand;
     const originSupply = originSystem.system.economicData.tradeInfo.supply;
     let edgesArray = originSystem.edges;
+    let startSystem = originSystem;
+    let visitedSystems = [startKey];
     //Starts the journey at 1 hex distance
     for (let distance = 0; distance < originSystem.system.economicData.tradeRange; distance++) {
-      edgesArray.forEach(edgeKey => {
+      edgesArray.forEach((edgeKey, edgeIndex) => {
         let edge = sectorMap.SectorMap.get(edgeKey);
         if (edge.system && !edge.system.systemData.tradeCodes.includes("Ba")) {
           let edgeDemands = edge.system.economicData.tradeInfo.demand;
           let edgeSupply = edge.system.economicData.tradeInfo.supply;
           let selling = [];
           let buying = [];
+          visitedSystems.push(edgeKey);
 
           //Compare originDemands to edgeSupply
           originDemands.forEach(demand => {
@@ -207,15 +210,23 @@ class Economy {
             }
           });
           if (selling.length > 0 || buying.length > 0) {
-            //WORKING HERE - build out TradeRoute Object
             let tradeData = {
               sellingIdArray: selling,
               buyingIdArray: buying
             };
-            let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(originSystem, edge, tradeData);
+            let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(startSystem, edge, tradeData);
             originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
           }
         }
+        //Get more edges
+        let newEdgesArray = edge.edges;
+        newEdgesArray.forEach((edge, index) => {
+          if (visitedSystems.includes(edge)) {
+            newEdgesArray.splice(index, 1);
+          }
+        });
+        edgesArray.splice(edgeIndex, 1);
+        edgesArray.push(...edge.edges);
       });
     }
     ;
