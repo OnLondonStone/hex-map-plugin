@@ -217,19 +217,25 @@ class Economy {
             let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(startSystem, edge, tradeData);
             originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
           }
+          //Get more edges
+          let newEdgesArray = edge.edges;
+          newEdgesArray.forEach((edge, index, array) => {
+            let newEdgeHex = sectorMap.SectorMap.get(edge);
+            if (newEdgeHex.system == null) {
+              array.splice(index, 1);
+            }
+            if (edgesArray.includes(edge)) {
+              array.splice(index, 1);
+            }
+            if (visitedSystems.includes(edge)) {
+              array.splice(index, 1);
+            }
+          });
+          edgesArray.splice(edgeIndex, 1);
+          edgesArray.push(...newEdgesArray);
         }
-        //Get more edges
-        let newEdgesArray = edge.edges;
-        newEdgesArray.forEach((edge, index) => {
-          if (visitedSystems.includes(edge)) {
-            newEdgesArray.splice(index, 1);
-          }
-        });
-        edgesArray.splice(edgeIndex, 1);
-        edgesArray.push(...edge.edges);
       });
     }
-    ;
   }
 }
 

@@ -150,47 +150,54 @@ export class Economy{
         let visitedSystems = [startKey];
         //Starts the journey at 1 hex distance
         for(let distance = 0; distance < originSystem.system.economicData.tradeRange; distance ++){
-        edgesArray.forEach((edgeKey, edgeIndex) => {
-            let edge = sectorMap.SectorMap.get(edgeKey);
-            if(edge.system && !(edge.system.systemData.tradeCodes.includes("Ba"))){
-                let edgeDemands = edge.system.economicData.tradeInfo.demand;
-                let edgeSupply = edge.system.economicData.tradeInfo.supply;
+            edgesArray.forEach((edgeKey, edgeIndex) => {
+                let edge = sectorMap.SectorMap.get(edgeKey);
+                if(edge.system && !(edge.system.systemData.tradeCodes.includes("Ba"))){
+                    let edgeDemands = edge.system.economicData.tradeInfo.demand;
+                    let edgeSupply = edge.system.economicData.tradeInfo.supply;
 
-                let selling = [];
-                let buying = [];
+                    let selling = [];
+                    let buying = [];
 
-                visitedSystems.push(edgeKey);
+                    visitedSystems.push(edgeKey);
 
-                //Compare originDemands to edgeSupply
-                originDemands.forEach((demand) => {
-                    let match = edgeSupply.find((supply) => supply.id == demand.id);
-                    if(match){
-                        buying.push(match.id);
-                    }})
+                    //Compare originDemands to edgeSupply
+                    originDemands.forEach((demand) => {
+                        let match = edgeSupply.find((supply) => supply.id == demand.id);
+                        if(match){
+                            buying.push(match.id);
+                        }})
 
-                //Comapre originSupply to edgeDemands        
-                originSupply.forEach((supply) => {
-                    let match = edgeDemands.find((demand) => demand.id == supply.id);
-                    if(match){
-                        selling.push(match.id);
+                    //Comapre originSupply to edgeDemands        
+                    originSupply.forEach((supply) => {
+                        let match = edgeDemands.find((demand) => demand.id == supply.id);
+                        if(match){
+                            selling.push(match.id);
+                        }
+                    })
+                    if(selling.length > 0 || buying.length > 0){
+                        let tradeData = {sellingIdArray : selling, buyingIdArray : buying};
+                        let newRoute = new TradeRoute(startSystem, edge, tradeData);
+                        originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute)
                     }
-                })
-                if(selling.length > 0 || buying.length > 0){
-                    let tradeData = {sellingIdArray : selling, buyingIdArray : buying};
-                    let newRoute = new TradeRoute(startSystem, edge, tradeData);
-                    originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute)
+                //Get more edges
+                    let newEdgesArray = edge.edges;
+                    newEdgesArray.forEach((edge, index, array) =>{
+                        let newEdgeHex = sectorMap.SectorMap.get(edge);
+                        if(newEdgeHex.system == null){
+                            (array.splice(index , 1));
+                        }
+                        if(edgesArray.includes(edge)){
+                            (array.splice(index , 1));
+                        }
+                        if(visitedSystems.includes(edge)){
+                            (array.splice(index , 1));
+                        }
+                    });
+                    edgesArray.splice(edgeIndex, 1)
+                    edgesArray.push(...newEdgesArray);
                 }
-
-            }
-                            //Get more edges
-            let newEdgesArray = edge.edges;
-            newEdgesArray.forEach((edge, index) =>{
-                if(visitedSystems.includes(edge)){
-                    newEdgesArray.splice(index, 1)
-                }
-            })
-            edgesArray.splice(edgeIndex, 1)
-            edgesArray.push(...edge.edges);
-        })};    
+            });
+        }    
     }
 }
