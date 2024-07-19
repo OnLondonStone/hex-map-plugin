@@ -83,7 +83,6 @@ export function runSimulation(){
     //At some point work out how to make this simpler!
     activeHexes.forEach((hexKey) =>{ 
         origin = sectorMap.SectorMap.get(hexKey);
-
         origin.system.economicData.findTradeRoutes(hexKey);
         origin.system.economicData.tradeRoutes.forEach(
             (route, routeKey) =>{
@@ -100,7 +99,9 @@ export function runSimulation(){
     activeHexes.forEach((hexKey) =>{
         origin = sectorMap.SectorMap.get(hexKey);
         origin.system.economicData.tradeRoutes.forEach((route) =>{
-            route.drawConnectingLine(maxValue);})
+            if(route.routeHexesArray.length > 0){
+                console.log(route, route.routeHexesArray)
+            route.drawConnectingLine(maxValue, route.routeHexesArray)};})
     })
 }
 

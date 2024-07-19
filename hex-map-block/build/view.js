@@ -175,6 +175,7 @@ class Economy {
     return tradeRange;
   }
   //findTradeRoutes(hexKey, distance);
+  //Work out how to merge with trade routes' pathing algo
   findTradeRoutes(startKey) {
     const sectorMap = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_2__.getSectorData)();
     const originSystem = sectorMap.SectorMap.get(startKey);
@@ -185,6 +186,7 @@ class Economy {
     let visitedSystems = [startKey];
     //Starts the journey at 1 hex distance
     for (let distance = 0; distance < originSystem.system.economicData.tradeRange; distance++) {
+      let previousSystem = startSystem;
       edgesArray.forEach((edgeKey, edgeIndex) => {
         let edge = sectorMap.SectorMap.get(edgeKey);
         if (edge.system && !edge.system.systemData.tradeCodes.includes("Ba")) {
@@ -214,7 +216,7 @@ class Economy {
               sellingIdArray: selling,
               buyingIdArray: buying
             };
-            let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(startSystem, edge, tradeData);
+            let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(previousSystem, edge, tradeData);
             originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
           }
           //Get more edges
@@ -234,6 +236,10 @@ class Economy {
           edgesArray.splice(edgeIndex, 1);
           edgesArray.push(...newEdgesArray);
         }
+        if (edge.system) {
+          previousSystem = edge;
+        }
+        ;
       });
     }
   }
@@ -969,9 +975,9 @@ class Hex {
   }
   setEdges(col, row, hex, SectorMap) {
     let edges = [];
-    let directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[0];
+    let directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[1];
     if (hex.col % 2 != 0) {
-      directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[1];
+      directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[0];
     }
     directionArray.forEach(direction => {
       let edgeCol = hex.col + direction[0];
@@ -1106,7 +1112,11 @@ function runSimulation() {
   activeHexes.forEach(hexKey => {
     origin = sectorMap.SectorMap.get(hexKey);
     origin.system.economicData.tradeRoutes.forEach(route => {
-      route.drawConnectingLine(maxValue);
+      if (route.routeHexesArray.length > 0) {
+        console.log(route, route.routeHexesArray);
+        route.drawConnectingLine(maxValue, route.routeHexesArray);
+      }
+      ;
     });
   });
 }
@@ -1668,13 +1678,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   TradeRoute: () => (/* binding */ TradeRoute)
 /* harmony export */ });
+/* harmony import */ var _mapCode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mapCode.js */ "./src/modules/mapCode.js");
+
 class TradeRoute {
   constructor(startHex, endHex, tradeData) {
     this.startId = startHex.id;
     this.endId = endHex.id;
-    this.startCenterPoint = startHex.centerPoint;
-    this.endCenterPoint = endHex.centerPoint;
     this.routeKey = this.startId + " <=> " + this.endId;
+    this.routeHexesArray = this.findRoute(startHex.hexKey, endHex.hexKey);
     this.startTradeInfo = startHex.system.economicData.tradeInfo;
     this.endTradeInfo = endHex.system.economicData.tradeInfo;
     this.startTradeData = tradeData;
@@ -1682,6 +1693,60 @@ class TradeRoute {
     this.tradeRouteVolume = 0;
     this.tradeRouteProfit = 0;
     this.tradeRouteDetails = [];
+  }
+  //Red Blob Games to the rescue
+  findRoute(start, end) {
+    const sectorData = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
+    const routeStart = start;
+    const routeEnd = end;
+    let frontierQueue = [];
+    let reached = [];
+    let cameFrom = [];
+    let path = [];
+    let endReached = false;
+    let startReached = false;
+    let current = routeStart;
+
+    //Checks for odd bug. Find down the line
+    if (start == end) {
+      return path;
+    }
+    ;
+    do {
+      reached.push(current);
+      let newFrontiers = sectorData.SectorMap.get(current).edges;
+      newFrontiers.forEach(hex => {
+        let checkHex = sectorData.SectorMap.get(hex);
+        if (checkHex.system && !reached.includes(hex)) {
+          frontierQueue.push(hex);
+          reached.push(hex);
+        }
+      });
+      if (frontierQueue.includes(routeEnd)) {
+        endReached = true;
+        cameFrom.push([current, routeEnd]);
+      } else {
+        cameFrom.push([current, frontierQueue[0]]);
+        current = frontierQueue[0];
+        frontierQueue.shift();
+      }
+    } while (!endReached && frontierQueue.length > 0);
+    let lastStep = cameFrom[cameFrom.length - 1];
+    path.push(lastStep);
+    let currentStep = lastStep;
+    let previousStep;
+    if (lastStep[0] != routeStart) {
+      do {
+        previousStep = cameFrom.find(step => step[1] == currentStep[0]);
+        path.unshift(previousStep);
+        if (previousStep[0] == routeStart) {
+          startReached = true;
+        } else {
+          currentStep = previousStep;
+        }
+      } while (!startReached);
+    }
+    return path;
   }
   setHighestTradeCapacity(startCapacity, endCapacity) {
     if (startCapacity >= endCapacity) {
@@ -1733,22 +1798,32 @@ class TradeRoute {
       });
     }
   }
-  drawConnectingLine(maxValue) {
+  drawConnectingLine(maxValue, pathArray) {
     const startCenterPoint = this.startCenterPoint;
     const endCenterPoint = this.endCenterPoint;
     const width = this.calculateTradeRouteWidth(this.tradeRouteVolume, maxValue);
     const routeKey = this.routeKey;
     const tradeGroup = document.getElementById("trade-group");
-    let newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    newLine.setAttribute("x1", `${startCenterPoint.x}`);
-    newLine.setAttribute("y1", `${startCenterPoint.y}`);
-    newLine.setAttribute("x2", `${endCenterPoint.x}`);
-    newLine.setAttribute("y2", `${endCenterPoint.y}`);
-    newLine.setAttribute("class", "tradeLine");
-    newLine.setAttribute("id", routeKey);
-    newLine.setAttribute("style", `stroke:red; stroke-width: ${width}`);
-    newLine.addEventListener("click", this.tradeRouteOnClick);
-    tradeGroup.appendChild(newLine);
+    const sectorData = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
+    if (pathArray.length == 0) {
+      return;
+    }
+    let newPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    let pathStart = sectorData.SectorMap.get(pathArray[0][0]);
+    let pathString = `M${pathStart.centerPoint.x} ${pathStart.centerPoint.y} `;
+    for (let i = 0; i < pathArray.length; i++) {
+      let step = sectorData.SectorMap.get(pathArray[i][1]);
+      let stepCoords = step.centerPoint;
+      let x = stepCoords.x;
+      let y = stepCoords.y;
+      pathString += `L${x} ${y} `;
+    }
+    newPath.setAttribute("d", pathString);
+    newPath.setAttribute("class", "tradeLine");
+    newPath.setAttribute("id", routeKey);
+    newPath.setAttribute("style", `fill:none; stroke:red; stroke-width: ${width}`);
+    newPath.addEventListener("click", this.tradeRouteOnClick);
+    tradeGroup.appendChild(newPath);
   }
   calculateTradeRouteWidth(routeValue, maxValue) {
     let maxWidth = 20;

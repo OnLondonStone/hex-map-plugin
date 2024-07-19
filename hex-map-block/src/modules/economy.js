@@ -139,6 +139,7 @@ export class Economy{
         return tradeRange;
     }
     //findTradeRoutes(hexKey, distance);
+    //Work out how to merge with trade routes' pathing algo
     findTradeRoutes(startKey){
         const sectorMap = getSectorData();
         const originSystem = sectorMap.SectorMap.get(startKey);
@@ -150,6 +151,7 @@ export class Economy{
         let visitedSystems = [startKey];
         //Starts the journey at 1 hex distance
         for(let distance = 0; distance < originSystem.system.economicData.tradeRange; distance ++){
+            let previousSystem = startSystem;
             edgesArray.forEach((edgeKey, edgeIndex) => {
                 let edge = sectorMap.SectorMap.get(edgeKey);
                 if(edge.system && !(edge.system.systemData.tradeCodes.includes("Ba"))){
@@ -177,7 +179,7 @@ export class Economy{
                     })
                     if(selling.length > 0 || buying.length > 0){
                         let tradeData = {sellingIdArray : selling, buyingIdArray : buying};
-                        let newRoute = new TradeRoute(startSystem, edge, tradeData);
+                        let newRoute = new TradeRoute(previousSystem, edge, tradeData);
                         originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute)
                     }
                 //Get more edges
@@ -197,7 +199,9 @@ export class Economy{
                     edgesArray.splice(edgeIndex, 1)
                     edgesArray.push(...newEdgesArray);
                 }
+                if(edge.system){previousSystem = edge};
             });
+
         }    
     }
 }

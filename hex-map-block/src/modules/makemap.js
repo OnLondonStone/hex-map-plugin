@@ -181,9 +181,9 @@ export class Hex {
     setEdges(col, row, hex, SectorMap){
         let edges = [];
 
-        let directionArray = oddq_direction_differences[0];
+        let directionArray = oddq_direction_differences[1];
         if(hex.col % 2 != 0){
-            directionArray = oddq_direction_differences[1];}          
+            directionArray = oddq_direction_differences[0];}          
 
         directionArray.forEach((direction) => {
             let edgeCol = hex.col + direction[0];
