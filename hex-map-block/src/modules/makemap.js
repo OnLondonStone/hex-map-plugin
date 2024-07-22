@@ -1,4 +1,4 @@
-import { openTab, generateInfoBox, generateTradeBox, rollDice, oddq_direction_differences } from "./utilities.js";
+import { openTab, generateInfoBox, generateTradeBox, rollDice, direction_differences } from "./utilities.js";
 import { System } from "./system.js";
 //TRY AND REPLACE ALL USES OF map with SECTOR if Map
 //Something deeply cursed is happening in the hex coordinates. I try not to think about it
@@ -69,34 +69,38 @@ export class Sector{
 //Bring up to standard - half done
 export class Hex {
     constructor(col, row, hexSize){
+        //Hexes are 0 index
         this.col = col;
         this.row = row;
-        this.hexKey = [col, row];
+        this.colNum = col - 1;
+        this.rowNum = row - 1;
+        this.hexKey = [this.colNum, this.rowNum];
         this.hexSize = hexSize;
-        this.centerPoint = this.hexCenter();
-        this.axialCoord = this.oddqToAxial();
+        this.centerPoint = this.hexCenter(this.col, this.row, this.hexSize);
+        this.axialCoord = this.oddqToAxial(this.col, this.row);
         this.edges;
-        this.id = `${this.col - 1}, ${this.row - 1}`;
+        this.id = `${this.colNum}, ${this.rowNum}`;
         this.system = this.setSystem(this.id, this.centerPoint);
+        this.moveCost = this.setMoveCost(this.system);
         this.init();
     }    
     init(){
         //Create Hex
-        this.createHex(this.col,this.row);
+        this.createHex();
     }
     //Returns center point of given col and row values
-    hexCenter(){
+    hexCenter(col, row, hexSize){
         let margin = 3;
-        let x = this.col * (3/2 * this.hexSize) - (this.hexSize/2) + margin;
-        let y = this.row * (Math.sqrt(3) * this.hexSize) - (Math.sqrt(3) * this.hexSize / 2) + margin;
+        let x = col * (3/2 * hexSize) - (hexSize/2) + margin;
+        let y = row * (Math.sqrt(3) * hexSize) - (Math.sqrt(3) * hexSize / 2) + margin;
         //2nd Column offset
-        if (!(this.col%2)){y += (Math.sqrt(3)/2 * this.hexSize)}
+        if (!(this.col%2)){y += (Math.sqrt(3)/2 * hexSize)}
         return {"x":x, "y":y};
     }
     //Credit to RedBlobGames for 100% of this:
-    oddqToAxial(){
-            let q = this.col;
-            let r = this.row - (this.col - (((this.col%2) === 0?this.col : 0)));
+    oddqToAxial(col, row){
+            let q = col;
+            let r = row - (col - (((col%2) === 0? col : 0)));
             return {'q':q, 'r':r};
     }
     //Creates hex element
@@ -178,18 +182,22 @@ export class Hex {
         mark.setAttribute("id", "marker");
         newHex.appendChild(mark);
     }
+    setMoveCost(system){
+        let cost = 1;
+        if(!system){cost = 3};
+        return cost;
+    }
     setEdges(col, row, hex, SectorMap){
         let edges = [];
-
-        let directionArray = oddq_direction_differences[1];
-        if(hex.col % 2 != 0){
-            directionArray = oddq_direction_differences[0];}          
-
-        directionArray.forEach((direction) => {
+        let parity = hex.col & 1;
+        let dif = direction_differences[parity]  
+        //THIS IS WRONG?
+        dif.forEach((direction) => {
             let edgeCol = hex.col + direction[0];
             let edgeRow = hex.row + direction[1];
             if(edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row){
-                SectorMap.forEach((hex, key)=>{if(hex.col == edgeCol && hex.row == edgeRow){edges.push(key)}})
+                SectorMap.forEach((hex, key)=>{if(hex.col == edgeCol && hex.row == edgeRow){
+                    edges.push({key : key, cost : hex.moveCost})}})
             }})
         return edges;
     }

@@ -15,6 +15,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _economyConstants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./economyConstants.js */ "./src/modules/economyConstants.js");
 /* harmony import */ var _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./tradeRoutes.js */ "./src/modules/tradeRoutes.js");
 /* harmony import */ var _mapCode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mapCode.js */ "./src/modules/mapCode.js");
+/* harmony import */ var _pathfinding_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./pathfinding.js */ "./src/modules/pathfinding.js");
+
 
 
 
@@ -175,72 +177,55 @@ class Economy {
     return tradeRange;
   }
   //findTradeRoutes(hexKey, distance);
-  //Work out how to merge with trade routes' pathing algo
-  findTradeRoutes(startKey) {
+  findTradePartners(startKey) {
     const sectorMap = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_2__.getSectorData)();
     const originSystem = sectorMap.SectorMap.get(startKey);
-    const originDemands = originSystem.system.economicData.tradeInfo.demand;
-    const originSupply = originSystem.system.economicData.tradeInfo.supply;
-    let edgesArray = originSystem.edges;
-    let startSystem = originSystem;
-    let visitedSystems = [startKey];
-    //Starts the journey at 1 hex distance
-    for (let distance = 0; distance < originSystem.system.economicData.tradeRange; distance++) {
-      let previousSystem = startSystem;
-      edgesArray.forEach((edgeKey, edgeIndex) => {
-        let edge = sectorMap.SectorMap.get(edgeKey);
-        if (edge.system && !edge.system.systemData.tradeCodes.includes("Ba")) {
-          let edgeDemands = edge.system.economicData.tradeInfo.demand;
-          let edgeSupply = edge.system.economicData.tradeInfo.supply;
-          let selling = [];
-          let buying = [];
-          visitedSystems.push(edgeKey);
+    let tradePartnersList = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_3__.uniformCostSearchSystems)(startKey, this.tradeRange);
+    if (tradePartnersList.size > 0) {
+      tradePartnersList.forEach(this.setTradeRoute);
+    }
+  }
+  setTradeRoute(tradePartner, originKey) {
+    const sectorMap = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_2__.getSectorData)();
+    let originSystem;
+    if (tradePartner == null) {
+      return;
+    }
+    originSystem = sectorMap.SectorMap.get(originKey);
+    if (originSystem.system == null) {
+      return;
+    }
+    let originSupply = originSystem.system.economicData.tradeInfo.supply;
+    let originDemands = originSystem.system.economicData.tradeInfo.demand;
+    if (tradePartner.system && !tradePartner.system.systemData.tradeCodes.includes("Ba")) {
+      let tradePartnerDemands = tradePartner.system.economicData.tradeInfo.demand;
+      let tradePartnerSupply = tradePartner.system.economicData.tradeInfo.supply;
+      let selling = [];
+      let buying = [];
 
-          //Compare originDemands to edgeSupply
-          originDemands.forEach(demand => {
-            let match = edgeSupply.find(supply => supply.id == demand.id);
-            if (match) {
-              buying.push(match.id);
-            }
-          });
-
-          //Comapre originSupply to edgeDemands        
-          originSupply.forEach(supply => {
-            let match = edgeDemands.find(demand => demand.id == supply.id);
-            if (match) {
-              selling.push(match.id);
-            }
-          });
-          if (selling.length > 0 || buying.length > 0) {
-            let tradeData = {
-              sellingIdArray: selling,
-              buyingIdArray: buying
-            };
-            let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(previousSystem, edge, tradeData);
-            originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
-          }
-          //Get more edges
-          let newEdgesArray = edge.edges;
-          newEdgesArray.forEach((edge, index, array) => {
-            let newEdgeHex = sectorMap.SectorMap.get(edge);
-            if (newEdgeHex.system == null) {
-              array.splice(index, 1);
-            }
-            if (edgesArray.includes(edge)) {
-              array.splice(index, 1);
-            }
-            if (visitedSystems.includes(edge)) {
-              array.splice(index, 1);
-            }
-          });
-          edgesArray.splice(edgeIndex, 1);
-          edgesArray.push(...newEdgesArray);
+      //Compare originDemands to edgeSupply
+      originDemands.forEach(demand => {
+        let match = tradePartnerSupply.find(supply => supply.id == demand.id);
+        if (match) {
+          buying.push(match.id);
         }
-        if (edge.system) {
-          previousSystem = edge;
-        }
-        ;
       });
+
+      //Comapre originSupply to edgeDemands        
+      originSupply.forEach(supply => {
+        let match = tradePartnerDemands.find(demand => demand.id == supply.id);
+        if (match) {
+          selling.push(match.id);
+        }
+      });
+      if (selling.length > 0 || buying.length > 0) {
+        let tradeData = {
+          sellingIdArray: selling,
+          buyingIdArray: buying
+        };
+        let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(originSystem, tradePartner, tradeData, originSystem.system.economicData.tradeRange);
+        originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
+      }
     }
   }
 }
@@ -828,29 +813,33 @@ class Sector {
 //Bring up to standard - half done
 class Hex {
   constructor(col, row, hexSize) {
+    //Hexes are 0 index
     this.col = col;
     this.row = row;
-    this.hexKey = [col, row];
+    this.colNum = col - 1;
+    this.rowNum = row - 1;
+    this.hexKey = [this.colNum, this.rowNum];
     this.hexSize = hexSize;
-    this.centerPoint = this.hexCenter();
-    this.axialCoord = this.oddqToAxial();
+    this.centerPoint = this.hexCenter(this.col, this.row, this.hexSize);
+    this.axialCoord = this.oddqToAxial(this.col, this.row);
     this.edges;
-    this.id = `${this.col - 1}, ${this.row - 1}`;
+    this.id = `${this.colNum}, ${this.rowNum}`;
     this.system = this.setSystem(this.id, this.centerPoint);
+    this.moveCost = this.setMoveCost(this.system);
     this.init();
   }
   init() {
     //Create Hex
-    this.createHex(this.col, this.row);
+    this.createHex();
   }
   //Returns center point of given col and row values
-  hexCenter() {
+  hexCenter(col, row, hexSize) {
     let margin = 3;
-    let x = this.col * (3 / 2 * this.hexSize) - this.hexSize / 2 + margin;
-    let y = this.row * (Math.sqrt(3) * this.hexSize) - Math.sqrt(3) * this.hexSize / 2 + margin;
+    let x = col * (3 / 2 * hexSize) - hexSize / 2 + margin;
+    let y = row * (Math.sqrt(3) * hexSize) - Math.sqrt(3) * hexSize / 2 + margin;
     //2nd Column offset
     if (!(this.col % 2)) {
-      y += Math.sqrt(3) / 2 * this.hexSize;
+      y += Math.sqrt(3) / 2 * hexSize;
     }
     return {
       "x": x,
@@ -858,9 +847,9 @@ class Hex {
     };
   }
   //Credit to RedBlobGames for 100% of this:
-  oddqToAxial() {
-    let q = this.col;
-    let r = this.row - (this.col - (this.col % 2 === 0 ? this.col : 0));
+  oddqToAxial(col, row) {
+    let q = col;
+    let r = row - (col - (col % 2 === 0 ? col : 0));
     return {
       'q': q,
       'r': r
@@ -973,19 +962,29 @@ class Hex {
     mark.setAttribute("id", "marker");
     newHex.appendChild(mark);
   }
+  setMoveCost(system) {
+    let cost = 1;
+    if (!system) {
+      cost = 3;
+    }
+    ;
+    return cost;
+  }
   setEdges(col, row, hex, SectorMap) {
     let edges = [];
-    let directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[1];
-    if (hex.col % 2 != 0) {
-      directionArray = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.oddq_direction_differences[0];
-    }
-    directionArray.forEach(direction => {
+    let parity = hex.col & 1;
+    let dif = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.direction_differences[parity];
+    //THIS IS WRONG?
+    dif.forEach(direction => {
       let edgeCol = hex.col + direction[0];
       let edgeRow = hex.row + direction[1];
       if (edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row) {
         SectorMap.forEach((hex, key) => {
           if (hex.col == edgeCol && hex.row == edgeRow) {
-            edges.push(key);
+            edges.push({
+              key: key,
+              cost: hex.moveCost
+            });
           }
         });
       }
@@ -1094,7 +1093,7 @@ function runSimulation() {
   //At some point work out how to make this simpler!
   activeHexes.forEach(hexKey => {
     origin = sectorMap.SectorMap.get(hexKey);
-    origin.system.economicData.findTradeRoutes(hexKey);
+    origin.system.economicData.findTradePartners(hexKey);
     origin.system.economicData.tradeRoutes.forEach((route, routeKey) => {
       route.exchangeGoods();
       sectorMap.TradeMap.set(routeKey, route);
@@ -1112,6 +1111,7 @@ function runSimulation() {
   activeHexes.forEach(hexKey => {
     origin = sectorMap.SectorMap.get(hexKey);
     origin.system.economicData.tradeRoutes.forEach(route => {
+      //Issue in route.routeHexesArray
       if (route.routeHexesArray.length > 0) {
         console.log(route, route.routeHexesArray);
         route.drawConnectingLine(maxValue, route.routeHexesArray);
@@ -1124,6 +1124,183 @@ function checkActiveHex(value, key) {
   if (value.system) {
     this.push(key);
   }
+}
+
+/***/ }),
+
+/***/ "./src/modules/pathfinding.js":
+/*!************************************!*\
+  !*** ./src/modules/pathfinding.js ***!
+  \************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   PriorityQueue: () => (/* binding */ PriorityQueue),
+/* harmony export */   reconstructPath: () => (/* binding */ reconstructPath),
+/* harmony export */   uniformCostSearchPathfinder: () => (/* binding */ uniformCostSearchPathfinder),
+/* harmony export */   uniformCostSearchSystems: () => (/* binding */ uniformCostSearchSystems)
+/* harmony export */ });
+//https://www.geeksforgeeks.org/implementation-priority-queue-javascript/
+class PriorityQueue {
+  constructor() {
+    this.heap = [];
+  }
+
+  // Helper Methods
+  getLeftChildIndex(parentIndex) {
+    return 2 * parentIndex + 1;
+  }
+  getRightChildIndex(parentIndex) {
+    return 2 * parentIndex + 2;
+  }
+  getParentIndex(childIndex) {
+    return Math.floor((childIndex - 1) / 2);
+  }
+  hasLeftChild(index) {
+    return this.getLeftChildIndex(index) < this.heap.length;
+  }
+  hasRightChild(index) {
+    return this.getRightChildIndex(index) < this.heap.length;
+  }
+  hasParent(index) {
+    return this.getParentIndex(index) >= 0;
+  }
+  leftChild(index) {
+    return this.heap[this.getLeftChildIndex(index)];
+  }
+  rightChild(index) {
+    return this.heap[this.getRightChildIndex(index)];
+  }
+  parent(index) {
+    return this.heap[this.getParentIndex(index)];
+  }
+  swap(indexOne, indexTwo) {
+    const temp = this.heap[indexOne];
+    this.heap[indexOne] = this.heap[indexTwo];
+    this.heap[indexTwo] = temp;
+  }
+  peek() {
+    if (this.heap.length === 0) {
+      return null;
+    }
+    return this.heap[0];
+  }
+
+  // Removing an element will remove the
+  // top element with highest priority then
+  // heapifyDown will be called 
+  get() {
+    if (this.heap.length === 0) {
+      return null;
+    }
+    const item = this.heap[0];
+    this.heap[0] = this.heap[this.heap.length - 1];
+    this.heap.pop();
+    this.heapifyDown();
+    return item;
+  }
+  put(item) {
+    this.heap.push(item);
+    this.heapifyUp();
+  }
+  heapifyUp() {
+    let index = this.heap.length - 1;
+    while (this.hasParent(index) && this.parent(index) > this.heap[index]) {
+      this.swap(this.getParentIndex(index), index);
+      index = this.getParentIndex(index);
+    }
+  }
+  heapifyDown() {
+    let index = 0;
+    while (this.hasLeftChild(index)) {
+      let smallerChildIndex = this.getLeftChildIndex(index);
+      if (this.hasRightChild(index) && this.rightChild(index) < this.leftChild(index)) {
+        smallerChildIndex = this.getRightChildIndex(index);
+      }
+      if (this.heap[index] < this.heap[smallerChildIndex]) {
+        break;
+      } else {
+        this.swap(index, smallerChildIndex);
+      }
+      index = smallerChildIndex;
+    }
+  }
+  isEmpty() {
+    // return true if the queue is empty.
+    if (this.heap.length == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+function uniformCostSearchSystems(start, range) {
+  const frontier = new PriorityQueue();
+  const graph = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
+  const cameFrom = new Map(); // Location, optional location B <= A
+  const costSoFar = new Map(); //Location, float
+
+  frontier.put(start);
+  cameFrom.set(start, null);
+  costSoFar.set(start, 0);
+  while (!frontier.isEmpty()) {
+    let currentKey = frontier.get();
+    let current = graph.get(currentKey);
+    let neighbours = current.edges;
+    neighbours.forEach(hex => {
+      let costToHere = costSoFar.get(currentKey);
+      let newCost = costToHere + hex.cost;
+      if (!costSoFar.has(hex.key) && newCost <= hex.cost && newCost <= range) {
+        costSoFar.set(hex.key, newCost);
+        frontier.put(hex.key);
+        cameFrom.set(hex.key, current);
+      }
+    });
+  }
+  return cameFrom;
+}
+function uniformCostSearchPathfinder(start, goal, range) {
+  const frontier = new PriorityQueue();
+  const graph = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
+  const cameFrom = new Map(); // Location, optional location B <= A
+  const costSoFar = new Map(); //Location, float
+
+  frontier.put(start);
+  cameFrom.set(start, null);
+  costSoFar.set(start, 0);
+  while (!frontier.isEmpty()) {
+    let currentKey = frontier.get();
+    let current = graph.get(currentKey);
+    let neighbours = current.edges;
+    if (currentKey == goal) {
+      break;
+    }
+    neighbours.forEach(hex => {
+      let costToHere = costSoFar.get(currentKey);
+      let newCost = costToHere + hex.cost;
+      if (!costSoFar.has(hex.key) && newCost <= hex.cost && newCost <= range) {
+        costSoFar.set(hex.key, newCost);
+        frontier.put(hex.key);
+        cameFrom.set(hex.key, currentKey);
+      }
+    });
+  }
+  return cameFrom;
+}
+function reconstructPath(cameFrom, start, goal) {
+  let current = goal;
+  let path = [];
+  if (!cameFrom.get(goal)) {
+    return;
+  }
+  while (current != start) {
+    path.push(current);
+    current = cameFrom.get(current);
+  }
+  path.push(start);
+  path.reverse();
+  return path;
 }
 
 /***/ }),
@@ -1679,13 +1856,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   TradeRoute: () => (/* binding */ TradeRoute)
 /* harmony export */ });
 /* harmony import */ var _mapCode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mapCode.js */ "./src/modules/mapCode.js");
+/* harmony import */ var _pathfinding_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./pathfinding.js */ "./src/modules/pathfinding.js");
+
 
 class TradeRoute {
-  constructor(startHex, endHex, tradeData) {
+  constructor(startHex, endHex, tradeData, maxRange) {
     this.startId = startHex.id;
     this.endId = endHex.id;
     this.routeKey = this.startId + " <=> " + this.endId;
-    this.routeHexesArray = this.findRoute(startHex.hexKey, endHex.hexKey);
+    this.maxRange = maxRange;
+    this.routeHexesArray = this.findRoute(startHex.hexKey, endHex.hexKey, this.maxRange);
     this.startTradeInfo = startHex.system.economicData.tradeInfo;
     this.endTradeInfo = endHex.system.economicData.tradeInfo;
     this.startTradeData = tradeData;
@@ -1695,58 +1875,13 @@ class TradeRoute {
     this.tradeRouteDetails = [];
   }
   //Red Blob Games to the rescue
-  findRoute(start, end) {
-    const sectorData = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
-    const routeStart = start;
-    const routeEnd = end;
-    let frontierQueue = [];
-    let reached = [];
-    let cameFrom = [];
-    let path = [];
-    let endReached = false;
-    let startReached = false;
-    let current = routeStart;
-
-    //Checks for odd bug. Find down the line
-    if (start == end) {
-      return path;
-    }
-    ;
-    do {
-      reached.push(current);
-      let newFrontiers = sectorData.SectorMap.get(current).edges;
-      newFrontiers.forEach(hex => {
-        let checkHex = sectorData.SectorMap.get(hex);
-        if (checkHex.system && !reached.includes(hex)) {
-          frontierQueue.push(hex);
-          reached.push(hex);
-        }
-      });
-      if (frontierQueue.includes(routeEnd)) {
-        endReached = true;
-        cameFrom.push([current, routeEnd]);
-      } else {
-        cameFrom.push([current, frontierQueue[0]]);
-        current = frontierQueue[0];
-        frontierQueue.shift();
-      }
-    } while (!endReached && frontierQueue.length > 0);
-    let lastStep = cameFrom[cameFrom.length - 1];
-    path.push(lastStep);
-    let currentStep = lastStep;
-    let previousStep;
-    if (lastStep[0] != routeStart) {
-      do {
-        previousStep = cameFrom.find(step => step[1] == currentStep[0]);
-        path.unshift(previousStep);
-        if (previousStep[0] == routeStart) {
-          startReached = true;
-        } else {
-          currentStep = previousStep;
-        }
-      } while (!startReached);
-    }
-    return path;
+  findRoute(start, end, range) {
+    const sectorMap = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
+    let startHex = sectorMap.get(start);
+    let endHex = sectorMap.get(end);
+    let pathFinder = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_1__.uniformCostSearchPathfinder)(start, end, range);
+    let route = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_1__.reconstructPath)(pathFinder, start, end);
+    return route;
   }
   setHighestTradeCapacity(startCapacity, endCapacity) {
     if (startCapacity >= endCapacity) {
@@ -1799,8 +1934,6 @@ class TradeRoute {
     }
   }
   drawConnectingLine(maxValue, pathArray) {
-    const startCenterPoint = this.startCenterPoint;
-    const endCenterPoint = this.endCenterPoint;
     const width = this.calculateTradeRouteWidth(this.tradeRouteVolume, maxValue);
     const routeKey = this.routeKey;
     const tradeGroup = document.getElementById("trade-group");
@@ -1809,10 +1942,10 @@ class TradeRoute {
       return;
     }
     let newPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    let pathStart = sectorData.SectorMap.get(pathArray[0][0]);
+    let pathStart = sectorData.SectorMap.get(pathArray[0]);
     let pathString = `M${pathStart.centerPoint.x} ${pathStart.centerPoint.y} `;
-    for (let i = 0; i < pathArray.length; i++) {
-      let step = sectorData.SectorMap.get(pathArray[i][1]);
+    for (let i = 1; i < pathArray.length; i++) {
+      let step = sectorData.SectorMap.get(pathArray[i]);
       let stepCoords = step.centerPoint;
       let x = stepCoords.x;
       let y = stepCoords.y;
@@ -1858,20 +1991,19 @@ class TradeRoute {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   allSystemsTable: () => (/* binding */ allSystemsTable),
+/* harmony export */   direction_differences: () => (/* binding */ direction_differences),
 /* harmony export */   generateInfoBox: () => (/* binding */ generateInfoBox),
 /* harmony export */   generateTradeBox: () => (/* binding */ generateTradeBox),
-/* harmony export */   oddq_direction_differences: () => (/* binding */ oddq_direction_differences),
 /* harmony export */   openTab: () => (/* binding */ openTab),
 /* harmony export */   rollDice: () => (/* binding */ rollDice)
 /* harmony export */ });
 /* harmony import */ var _economyConstants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./economyConstants.js */ "./src/modules/economyConstants.js");
 
-//Something odd happened in the hex code, I've switched these round and it seems to work.
-const oddq_direction_differences = [
-// odd cols 
-[[1, 1], [+1, 0], [0, -1], [-1, 0], [-1, 1], [0, 1]],
+const direction_differences = [
 // even cols 
-[[1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [0, 1]]];
+[[+1, +1], [+1, 0], [0, -1], [-1, 0], [-1, +1], [0, +1]],
+// odd cols 
+[[+1, 0], [+1, -1], [0, -1], [-1, -1], [-1, 0], [0, +1]]];
 function rollDice(numDice) {
   let total = 0;
   for (let i = 0; i < numDice; i++) {

@@ -1,13 +1,16 @@
 import { TRADEGOODS } from "./economyConstants.js";
-//Something odd happened in the hex code, I've switched these round and it seems to work.
-export const oddq_direction_differences = [
-    // odd cols 
-  [[1, 1], [+1,  0], [ 0, -1], [-1,  0], [-1, 1], [ 0, 1]],
+
+export const direction_differences = [
   // even cols 
-  [[1,  0], [1, -1], [ 0, -1], [-1, -1], [-1,  0], [ 0, 1]]
+  [[+1, +1], [+1,  0], [ 0, -1], 
+   [-1,  0], [-1, +1], [ 0, +1]],
+  // odd cols 
+  [[+1,  0], [+1, -1], [ 0, -1], 
+   [-1, -1], [-1,  0], [ 0, +1]]
 ]
 
 export function rollDice(numDice){
+
   let total = 0;
   for (let i=0; i < numDice; i++){
       total += Math.floor(Math.random() * 6 + 1);

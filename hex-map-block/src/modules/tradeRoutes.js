@@ -1,11 +1,13 @@
 import { getSectorData } from "./mapCode.js";
+import { uniformCostSearchSystems, uniformCostSearchPathfinder, reconstructPath } from "./pathfinding.js";
 
 export class TradeRoute{
-    constructor(startHex, endHex, tradeData){
+    constructor(startHex, endHex, tradeData, maxRange){
         this.startId = startHex.id;
         this.endId = endHex.id;
         this.routeKey = this.startId + " <=> " + this.endId;
-        this.routeHexesArray= this.findRoute(startHex.hexKey, endHex.hexKey);
+        this.maxRange = maxRange;
+        this.routeHexesArray= this.findRoute(startHex.hexKey, endHex.hexKey, this.maxRange);
 
         this.startTradeInfo = startHex.system.economicData.tradeInfo;
         this.endTradeInfo = endHex.system.economicData.tradeInfo;
@@ -18,65 +20,17 @@ export class TradeRoute{
         this.tradeRouteDetails = []; 
     }
     //Red Blob Games to the rescue
-    findRoute(start, end){
-        
-        const sectorData = getSectorData();
-        const routeStart = start;
-        const routeEnd = end;
-        let frontierQueue = [];
-        let reached = [];
-        let cameFrom = [];
-        let path = [];
-        let endReached = false;
-        let startReached = false;
-        let current = routeStart;
-        
-        //Checks for odd bug. Find down the line
-        if(start == end){return path};
-            do{
-                reached.push(current);
-                let newFrontiers = sectorData.SectorMap.get(current).edges;
-                newFrontiers.forEach((hex) => {
-                    let checkHex = sectorData.SectorMap.get(hex);
-                    if(checkHex.system && !(reached.includes(hex))){
-                        frontierQueue.push(hex);
-                        reached.push(hex);
-                    }
-                })
-                if(frontierQueue.includes(routeEnd)){
-                    endReached = true;
-                    cameFrom.push([current, routeEnd]);
-                }
-                else{
-                    cameFrom.push([current, frontierQueue[0]])
-                    current = frontierQueue[0];
-                    frontierQueue.shift();
-                }
+    findRoute(start, end, range){
+        const sectorMap = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
+        let startHex = sectorMap.get(start);
+        let endHex = sectorMap.get(end);
 
-            }
-            while(!endReached && frontierQueue.length > 0);
+        let pathFinder = uniformCostSearchPathfinder(start, end, range);
+        let route = reconstructPath(pathFinder, start, end);
 
-
-            let lastStep = cameFrom[cameFrom.length - 1];
-            path.push(lastStep);
-            let currentStep = lastStep;
-            let previousStep;
-            if(lastStep[0] != routeStart){
-                do{
-                    previousStep = cameFrom.find((step) => step[1] == currentStep[0]);
-                    path.unshift(previousStep);
-
-                    if(previousStep[0] == routeStart){
-                        startReached = true;
-                    }
-                    else{
-                        currentStep = previousStep;
-                    }
-                }
-                while(!startReached);                    
-            } 
-        return path;
+        return route;
     }
+
     setHighestTradeCapacity(startCapacity, endCapacity){
         if(startCapacity >= endCapacity){
             return startCapacity;
@@ -125,8 +79,6 @@ export class TradeRoute{
         }
     }
     drawConnectingLine(maxValue, pathArray){
-        const startCenterPoint = this.startCenterPoint; 
-        const endCenterPoint = this.endCenterPoint; 
         const width = this.calculateTradeRouteWidth(this.tradeRouteVolume, maxValue);
         const routeKey = this.routeKey;
         const tradeGroup = document.getElementById("trade-group");
@@ -137,10 +89,10 @@ export class TradeRoute{
         }
 
         let newPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        let pathStart = sectorData.SectorMap.get(pathArray[0][0])
+        let pathStart = sectorData.SectorMap.get(pathArray[0])
         let pathString = `M${pathStart.centerPoint.x} ${pathStart.centerPoint.y} `;
-        for(let i = 0; i < pathArray.length; i++) {
-            let step = sectorData.SectorMap.get(pathArray[i][1]);
+        for(let i = 1; i < pathArray.length; i++) {
+            let step = sectorData.SectorMap.get(pathArray[i]);
             let stepCoords = step.centerPoint;
             
             let x = stepCoords.x;
