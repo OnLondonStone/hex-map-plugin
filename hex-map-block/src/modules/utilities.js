@@ -2,12 +2,23 @@ import { TRADEGOODS } from "./economyConstants.js";
 
 export const direction_differences = [
   // even cols 
+  [[+1,  0], [+1, -1], [ 0, -1], 
+   [-1, -1], [-1,  0], [ 0, +1]],
+  // odd cols 
   [[+1, +1], [+1,  0], [ 0, -1], 
    [-1,  0], [-1, +1], [ 0, +1]],
-  // odd cols 
-  [[+1,  0], [+1, -1], [ 0, -1], 
-   [-1, -1], [-1,  0], [ 0, +1]]
-]
+];
+
+export function getSectorData(){
+  const sectorData = document.getElementById("hex-container").sectorDataContainer;
+  return sectorData;
+}
+
+export function getSystem(hexKey){
+  const sectorData = getSectorData();
+  let system = sectorData.SectorMap.get(hexKey);
+  return system;
+}
 
 export function rollDice(numDice){
 
@@ -164,6 +175,7 @@ export function generateTradeBox(data){
   tradeBox.appendChild(displayTable);
 }
 //Bring into standard with above table
+//Currently not working
 export function allSystemsTable(systemsList){
   let systemsBox = document.getElementById("all-systems-content");
   //Creates table
@@ -184,7 +196,7 @@ export function allSystemsTable(systemsList){
 
   //Creates rows
   for(let i = 1; i < systemsList.size; i++){
-      let listItem = systemsList.get(i-1);
+      let listItem = systemsList[i-1][1];
 
       let row = displayTable.insertRow(i);
       let hex = row.insertCell(0);

@@ -1,10 +1,10 @@
 import {TRADECODES, TRADEGOODS, BASICTRADEGOODS} from "./economyConstants.js"
 import { TradeRoute } from "./tradeRoutes.js";
-import { getSectorData } from "./mapCode.js";
+import { getSectorData, getSystem } from "./utilities.js";
 import { uniformCostSearchSystems } from "./pathfinding.js";
 
 export class Economy{
-    constructor(techLevel, government, popRoll, tradeCodes){
+    constructor(hexKey, techLevel, government, popRoll, tradeCodes){
         this.techLevel = techLevel;
         this.govtTier = government;
         this.tradeCodes = tradeCodes;
@@ -13,7 +13,7 @@ export class Economy{
         this.tradeInfo = this.setTradeInfo(this.popRoll, this.tradeCodes, BASICTRADEGOODS);
         this.tradeBalance = 0;
         this.tradeRange = this.setTradeRange(this.techLevel, this.tradeCodes);
-        this.tradeRoutes = new Map ([]);
+        this.tradeRoutes = new Map();
     }
 
     setTradeCapacity(tradeCodes, pop){
@@ -130,10 +130,8 @@ export class Economy{
        return demand;
     }
     setTradeRange(tech, tradeCodes){
-        let tradeRange = 0;
-
-        if( tech < 9 ){ tradeRange = 0 };
-        if( tech >= 9 ){ tradeRange = 1 };
+        let tradeRange = 1;
+        
         if( tech == 11){ tradeRange = 2 };
         if( tech == 12){ tradeRange = 3 };
         if( tech == 13){ tradeRange = 4 };
@@ -144,59 +142,20 @@ export class Economy{
 
         return tradeRange;
     }
-    findTradePartners(startKey){
-        if(this.tradeRange > 0){
-        let tradePartnersList = uniformCostSearchSystems(startKey, this.tradeRange);
-        if(tradePartnersList.size > 0){tradePartnersList.forEach(this.setTradeRoute)}
-        }
-
+    findTradePartners(startKey, tradeRange){
+        let tradePartnersList = uniformCostSearchSystems(startKey, tradeRange);
+        //Returns an array of hexKeys
+        return tradePartnersList;
     }
-    setTradeRoute(tradePartner, originKey){
-        const sectorMap = getSectorData();
-        let originSystem;
-
-        if(tradePartner == null){
-            return;
-        }
-
-        originSystem = sectorMap.SectorMap.get(originKey);
-
-        if(originSystem.system == null){
-            return;
-        }
-
-        let originSupply = originSystem.system.economicData.tradeInfo.supply;
-        let originDemands = originSystem.system.economicData.tradeInfo.demand;
-
-
-        if(tradePartner.system && !(tradePartner.system.systemData.tradeCodes.includes("Ba"))){
-            let tradePartnerDemands = tradePartner.system.economicData.tradeInfo.demand;
-            let tradePartnerSupply = tradePartner.system.economicData.tradeInfo.supply;
-
-            let selling = [];
-            let buying = [];
-
-            //Compare originDemands to edgeSupply
-            originDemands.forEach((demand) => {
-                let match = tradePartnerSupply.find((supply) => supply.id == demand.id);
-                if(match){
-                    buying.push(match.id);
-                }})
-
-            //Comapre originSupply to edgeDemands        
-            originSupply.forEach((supply) => {
-                let match = tradePartnerDemands.find((demand) => demand.id == supply.id);
-                if(match){
-                    selling.push(match.id);
-                }
-            })
-            if(selling.length > 0 || buying.length > 0){
-                let tradeData = {sellingIdArray : selling, buyingIdArray : buying};
-                if(originSystem.system.economicData.tradeRange > 0){
-                    let newRoute = new TradeRoute(originSystem, tradePartner, tradeData, originSystem.system.economicData.tradeRange);
-                    originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
-                    }
-            }  
-        }
+    //This is a map, called from runSimulation, hexKey is origin
+    setTradeRoutes(startKey, tradePartnersList){
+        const tradeRange = this.tradeRange;
+        tradePartnersList.forEach((hexKey) =>{
+            let hex = getSystem(hexKey);
+            if(hex.system){
+            let tradeRoute = new TradeRoute(startKey, hexKey, tradeRange)
+            this.tradeRoutes.set(hexKey, tradeRoute)}
+            console.log(this.tradeRoutes);
+        });
     }
 }

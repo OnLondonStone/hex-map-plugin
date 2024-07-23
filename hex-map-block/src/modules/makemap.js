@@ -1,21 +1,21 @@
 import { openTab, generateInfoBox, generateTradeBox, rollDice, direction_differences } from "./utilities.js";
 import { System } from "./system.js";
 //TRY AND REPLACE ALL USES OF map with SECTOR if Map
-//Something deeply cursed is happening in the hex coordinates. I try not to think about it
 
 export class Sector{
     constructor(col, row, scale){
         this.col = col;
         this.row = row;
         this.scale = scale;
-        this.SectorMap = this.makeSectorMap(this.col, this.row, this.scale);
-        this.systemList = this.makeSystemList(this.SectorMap);
+        this.TradeMap = new Map();
+        this.systemList = [];
+
+        this.SectorMap = this.makeSectorMap(this.col, this.row, this.scale, this.systemList);
     }
 
     //Creates 
-    makeSectorMap(col, row, scale){
+    makeSectorMap(col, row, scale, systemList){
         const SectorMap = new Map();
-        const TradeMap = new Map();
         let hexContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         hexContainer.setAttribute("id", "hex-container");
         hexContainer.id = "hex-container";
@@ -38,78 +38,55 @@ export class Sector{
         tradeGroup.setAttribute("id", "trade-group");
         hexContainer.appendChild(tradeGroup);
 
-
-
         for(let c = 0; c < col; c++){
             let colNum = c + 1;
             for (let r = 0; r < row; r++){
                 let rowNum = r + 1;
                 let hex = new Hex(colNum, rowNum, scale);
                 SectorMap.set(hex.hexKey, hex);
+
+                if(hex.system){
+                    let tableRow = {hex : hex.id, name : hex.system.tableData.Name, uwp: hex.system.tableData.UWP};
+                    systemList.push([hex.hexKey, tableRow]);
+                }
             }
         }
-        SectorMap.forEach((hex)=>{hex.edges = hex.setEdges(this.col, this.row, hex, SectorMap)});
-
-        return {SectorMap : SectorMap, TradeMap : TradeMap};
-    }
-    //Merge into above for each
-    makeSystemList(Sector){
-        let systemList = new Map();
-        let listKey = 0;
-        Sector.SectorMap.forEach((hex, systemKey) => {
-            if(hex.system){
-                let tableRow = {localID: systemKey, hex: hex.id, name: hex.system.tableData.Name, uwp: hex.system.tableData.UWP};
-                systemList.set(listKey, tableRow);
-                listKey ++;
-            }
-        });
-        return systemList;
+    SectorMap.forEach((hex)=>{hex.edges = hex.setEdges(hex.colNum, hex.rowNum, hex.hexKey, SectorMap, col, row)});
+    return SectorMap;
     }
 }
+
 //Bring up to standard - half done
 export class Hex {
     constructor(col, row, hexSize){
         //Hexes are 0 index
-        this.col = col;
-        this.row = row;
         this.colNum = col - 1;
         this.rowNum = row - 1;
         this.hexKey = [this.colNum, this.rowNum];
         this.hexSize = hexSize;
-        this.centerPoint = this.hexCenter(this.col, this.row, this.hexSize);
-        this.axialCoord = this.oddqToAxial(this.col, this.row);
+        this.centerPoint = this.hexCenter(col, row, hexSize);
         this.edges;
         this.id = `${this.colNum}, ${this.rowNum}`;
         this.system = this.setSystem(this.id, this.centerPoint);
         this.moveCost = this.setMoveCost(this.system);
-        this.init();
+        this.hexDOM = this.createHex(this.id, this.centerPoint, this.hexSize);
     }    
-    init(){
-        //Create Hex
-        this.createHex();
-    }
     //Returns center point of given col and row values
     hexCenter(col, row, hexSize){
         let margin = 3;
         let x = col * (3/2 * hexSize) - (hexSize/2) + margin;
         let y = row * (Math.sqrt(3) * hexSize) - (Math.sqrt(3) * hexSize / 2) + margin;
         //2nd Column offset
-        if (!(this.col%2)){y += (Math.sqrt(3)/2 * hexSize)}
+        if (!(col%2)){y += (Math.sqrt(3)/2 * hexSize)}
         return {"x":x, "y":y};
     }
-    //Credit to RedBlobGames for 100% of this:
-    oddqToAxial(col, row){
-            let q = col;
-            let r = row - (col - (((col%2) === 0? col : 0)));
-            return {'q':q, 'r':r};
-    }
     //Creates hex element
-    createHex(){
+    createHex(id, centerpoint, hexSize){
         let newHex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         let newHexGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-        newHex.setAttribute("points", this.hexPoints());
-        newHex.setAttribute("id",`${this.id}`);
+        newHex.setAttribute("points", this.hexPoints(centerpoint, hexSize));
+        newHex.setAttribute("id",`${id}`);
         newHexGroup.setAttribute("class","hex");
 
         //Adds onclick event
@@ -121,8 +98,9 @@ export class Hex {
         document.getElementById("hex-group").appendChild(newHexGroup);
 
         if(this.system){
-            this.setMarker(newHexGroup);
+            this.setMarker(centerpoint, newHexGroup);
         }
+        return newHex;
     }   
     setSystem(id, centerPoint){
         if(rollDice(1)>3){return new System(id, centerPoint)}
@@ -150,18 +128,18 @@ export class Hex {
         document.getElementById(hex.id).setAttribute("class","clicked-hex");
     }    
     //Gets from hexCenter(), creates points for hex polygon
-    hexPoints(){
+    hexPoints(centerpoint, hexSize){
         this.hexCenter();
-        let x = this.centerPoint.x;
-        let y = this.centerPoint.y;
+        let x = centerpoint.x;
+        let y = centerpoint.y;
         let points = ``;
 
         //Create Points list
         for(let i = 0; i<6; i++){
             const angleDeg = 60 * i;
             const angleRad = Math.PI/180 * angleDeg;
-            let xPoint = this.hexSize * Math.cos(angleRad);
-            let yPoint = this.hexSize * Math.sin(angleRad);
+            let xPoint = hexSize * Math.cos(angleRad);
+            let yPoint = hexSize * Math.sin(angleRad);
             //Above gives pixel coordinates at a 0,0 point.
             //Now to translate that to correct location.
             xPoint += x;
@@ -170,10 +148,10 @@ export class Hex {
         }
         return points;
     }
-    setMarker(newHex){
+    setMarker(centerpoint, newHex){
         //Useful code for creating a dot at the middle of a hex.
-        let cx = this.centerPoint.x;
-        let cy = this.centerPoint.y;
+        let cx = centerpoint.x;
+        let cy = centerpoint.y;
 
         let mark = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         mark.setAttribute("cx", cx);
@@ -187,16 +165,16 @@ export class Hex {
         if(!system){cost = 3};
         return cost;
     }
-    setEdges(col, row, hex, SectorMap){
+    setEdges(col, row, hexKey, SectorMap, colMax, rowMax){
         let edges = [];
-        let parity = hex.col & 1;
-        let dif = direction_differences[parity]  
-        //THIS IS WRONG?
+        let parity = col & 1;
+        let dif = direction_differences[parity]; 
         dif.forEach((direction) => {
-            let edgeCol = hex.col + direction[0];
-            let edgeRow = hex.row + direction[1];
-            if(edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row){
-                SectorMap.forEach((hex, key)=>{if(hex.col == edgeCol && hex.row == edgeRow){
+            let edgeCol = col + direction[0];
+            let edgeRow = row + direction[1];
+            if(edgeCol >= 0 && edgeCol <= colMax && edgeRow >= 0 && edgeRow <= rowMax){
+                //Have to find each edge's key from col and row. I guess it saves having to do it each time by saving it to the hex object?
+                SectorMap.forEach((hex, key)=>{if(hex.colNum == edgeCol && hex.rowNum == edgeRow){
                     edges.push({key : key, cost : hex.moveCost})}})
             }})
         return edges;

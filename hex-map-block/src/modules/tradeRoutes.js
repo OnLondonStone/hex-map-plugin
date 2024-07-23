@@ -1,37 +1,30 @@
-import { getSectorData } from "./mapCode.js";
-import { uniformCostSearchSystems, uniformCostSearchPathfinder, reconstructPath } from "./pathfinding.js";
+import { getSectorData, getSystem } from "./utilities.js";
+import { uniformCostSearchPathfinder, reconstructPath } from "./pathfinding.js";
 
 export class TradeRoute{
-    constructor(startHex, endHex, tradeData, maxRange){
-        this.startId = startHex.id;
-        this.endId = endHex.id;
-        this.routeKey = this.startId + " <=> " + this.endId;
-        this.maxRange = maxRange;
-        this.routeHexesArray= this.findRoute(startHex.hexKey, endHex.hexKey, this.maxRange);
+    constructor(start, end, maxRange){
+        this.startKey = start;
+        this.endKey = end;
+        this.routeKey = `${start}=>${end}`;
+        this.routeHexesArray= this.findRoute(start, end, maxRange);
 
-        this.startTradeInfo = startHex.system.economicData.tradeInfo;
-        this.endTradeInfo = endHex.system.economicData.tradeInfo;
+        this.startSystem = getSystem(start);
+        this.endSystem = getSystem(end);
 
-        this.startTradeData = tradeData;
+        this.startTradeInfo = this.startSystem.system.economicData.tradeInfo;
+        this.endTradeInfo = this.endSystem.system.economicData.tradeInfo;
 
-        this.routeTradeCapacity = this.setHighestTradeCapacity(startHex.system.economicData.tradeCapacity, endHex.system.economicData.tradeCapacity)
-        this.tradeRouteVolume = 0
+        this.routeTradeCapacity = this.setHighestTradeCapacity(this.startSystem.system.economicData.tradeCapacity, this.endSystem.system.economicData.tradeCapacity);
+        //Need to fix tradeRouteVolume to fix line width.
+        this.tradeRouteVolume = 0;
         this.tradeRouteProfit = 0;
         this.tradeRouteDetails = []; 
     }
     //Red Blob Games to the rescue
     findRoute(start, end, range){
-        const sectorMap = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
-        let startHex = sectorMap.get(start);
-        let endHex = sectorMap.get(end);
-
-        if(range == 0){
-            return;
-        }
-
         let pathFinder = uniformCostSearchPathfinder(start, end, range);
         let route = reconstructPath(pathFinder, start, end);
-
+       
         return route;
     }
 
@@ -128,7 +121,7 @@ export class TradeRoute{
         return width;
     }
     tradeRouteOnClick(){
-        const SectorTradeRoutes = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.TradeMap;
+        const SectorTradeRoutes = document.getElementById("hex-container").sectorDataContainer.SectorMap;
         console.log(this.id);
         let clickedRoute = SectorTradeRoutes.get(this.id);
         console.log(clickedRoute);

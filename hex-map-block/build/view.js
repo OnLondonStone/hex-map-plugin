@@ -14,14 +14,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _economyConstants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./economyConstants.js */ "./src/modules/economyConstants.js");
 /* harmony import */ var _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./tradeRoutes.js */ "./src/modules/tradeRoutes.js");
-/* harmony import */ var _mapCode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mapCode.js */ "./src/modules/mapCode.js");
+/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities.js */ "./src/modules/utilities.js");
 /* harmony import */ var _pathfinding_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./pathfinding.js */ "./src/modules/pathfinding.js");
 
 
 
 
 class Economy {
-  constructor(techLevel, government, popRoll, tradeCodes) {
+  constructor(hexKey, techLevel, government, popRoll, tradeCodes) {
     this.techLevel = techLevel;
     this.govtTier = government;
     this.tradeCodes = tradeCodes;
@@ -30,7 +30,7 @@ class Economy {
     this.tradeInfo = this.setTradeInfo(this.popRoll, this.tradeCodes, _economyConstants_js__WEBPACK_IMPORTED_MODULE_0__.BASICTRADEGOODS);
     this.tradeBalance = 0;
     this.tradeRange = this.setTradeRange(this.techLevel, this.tradeCodes);
-    this.tradeRoutes = new Map([]);
+    this.tradeRoutes = new Map();
   }
   setTradeCapacity(tradeCodes, pop) {
     let tradeMultiplier;
@@ -159,15 +159,7 @@ class Economy {
     return demand;
   }
   setTradeRange(tech, tradeCodes) {
-    let tradeRange = 0;
-    if (tech < 9) {
-      tradeRange = 0;
-    }
-    ;
-    if (tech >= 9) {
-      tradeRange = 1;
-    }
-    ;
+    let tradeRange = 1;
     if (tech == 11) {
       tradeRange = 2;
     }
@@ -194,58 +186,22 @@ class Economy {
     ;
     return tradeRange;
   }
-  findTradePartners(startKey) {
-    if (this.tradeRange > 0) {
-      let tradePartnersList = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_3__.uniformCostSearchSystems)(startKey, this.tradeRange);
-      if (tradePartnersList.size > 0) {
-        tradePartnersList.forEach(this.setTradeRoute);
-      }
-    }
+  findTradePartners(startKey, tradeRange) {
+    let tradePartnersList = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_3__.uniformCostSearchSystems)(startKey, tradeRange);
+    //Returns an array of hexKeys
+    return tradePartnersList;
   }
-  setTradeRoute(tradePartner, originKey) {
-    const sectorMap = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_2__.getSectorData)();
-    let originSystem;
-    if (tradePartner == null) {
-      return;
-    }
-    originSystem = sectorMap.SectorMap.get(originKey);
-    if (originSystem.system == null) {
-      return;
-    }
-    let originSupply = originSystem.system.economicData.tradeInfo.supply;
-    let originDemands = originSystem.system.economicData.tradeInfo.demand;
-    if (tradePartner.system && !tradePartner.system.systemData.tradeCodes.includes("Ba")) {
-      let tradePartnerDemands = tradePartner.system.economicData.tradeInfo.demand;
-      let tradePartnerSupply = tradePartner.system.economicData.tradeInfo.supply;
-      let selling = [];
-      let buying = [];
-
-      //Compare originDemands to edgeSupply
-      originDemands.forEach(demand => {
-        let match = tradePartnerSupply.find(supply => supply.id == demand.id);
-        if (match) {
-          buying.push(match.id);
-        }
-      });
-
-      //Comapre originSupply to edgeDemands        
-      originSupply.forEach(supply => {
-        let match = tradePartnerDemands.find(demand => demand.id == supply.id);
-        if (match) {
-          selling.push(match.id);
-        }
-      });
-      if (selling.length > 0 || buying.length > 0) {
-        let tradeData = {
-          sellingIdArray: selling,
-          buyingIdArray: buying
-        };
-        if (originSystem.system.economicData.tradeRange > 0) {
-          let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(originSystem, tradePartner, tradeData, originSystem.system.economicData.tradeRange);
-          originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
-        }
+  //This is a map, called from runSimulation, hexKey is origin
+  setTradeRoutes(startKey, tradePartnersList) {
+    const tradeRange = this.tradeRange;
+    tradePartnersList.forEach(hexKey => {
+      let hex = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_2__.getSystem)(hexKey);
+      if (hex.system) {
+        let tradeRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(startKey, hexKey, tradeRange);
+        this.tradeRoutes.set(hexKey, tradeRoute);
       }
-    }
+      console.log(this.tradeRoutes);
+    });
   }
 }
 
@@ -759,21 +715,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 //TRY AND REPLACE ALL USES OF map with SECTOR if Map
-//Something deeply cursed is happening in the hex coordinates. I try not to think about it
 
 class Sector {
   constructor(col, row, scale) {
     this.col = col;
     this.row = row;
     this.scale = scale;
-    this.SectorMap = this.makeSectorMap(this.col, this.row, this.scale);
-    this.systemList = this.makeSystemList(this.SectorMap);
+    this.TradeMap = new Map();
+    this.systemList = [];
+    this.SectorMap = this.makeSectorMap(this.col, this.row, this.scale, this.systemList);
   }
 
   //Creates 
-  makeSectorMap(col, row, scale) {
+  makeSectorMap(col, row, scale, systemList) {
     const SectorMap = new Map();
-    const TradeMap = new Map();
     let hexContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     hexContainer.setAttribute("id", "hex-container");
     hexContainer.id = "hex-container";
@@ -800,56 +755,37 @@ class Sector {
         let rowNum = r + 1;
         let hex = new Hex(colNum, rowNum, scale);
         SectorMap.set(hex.hexKey, hex);
+        if (hex.system) {
+          let tableRow = {
+            hex: hex.id,
+            name: hex.system.tableData.Name,
+            uwp: hex.system.tableData.UWP
+          };
+          systemList.push([hex.hexKey, tableRow]);
+        }
       }
     }
     SectorMap.forEach(hex => {
-      hex.edges = hex.setEdges(this.col, this.row, hex, SectorMap);
+      hex.edges = hex.setEdges(hex.colNum, hex.rowNum, hex.hexKey, SectorMap, col, row);
     });
-    return {
-      SectorMap: SectorMap,
-      TradeMap: TradeMap
-    };
-  }
-  //Merge into above for each
-  makeSystemList(Sector) {
-    let systemList = new Map();
-    let listKey = 0;
-    Sector.SectorMap.forEach((hex, systemKey) => {
-      if (hex.system) {
-        let tableRow = {
-          localID: systemKey,
-          hex: hex.id,
-          name: hex.system.tableData.Name,
-          uwp: hex.system.tableData.UWP
-        };
-        systemList.set(listKey, tableRow);
-        listKey++;
-      }
-    });
-    return systemList;
+    return SectorMap;
   }
 }
+
 //Bring up to standard - half done
 class Hex {
   constructor(col, row, hexSize) {
     //Hexes are 0 index
-    this.col = col;
-    this.row = row;
     this.colNum = col - 1;
     this.rowNum = row - 1;
     this.hexKey = [this.colNum, this.rowNum];
     this.hexSize = hexSize;
-    this.centerPoint = this.hexCenter(this.col, this.row, this.hexSize);
-    this.axialCoord = this.oddqToAxial(this.col, this.row);
+    this.centerPoint = this.hexCenter(col, row, hexSize);
     this.edges;
     this.id = `${this.colNum}, ${this.rowNum}`;
     this.system = this.setSystem(this.id, this.centerPoint);
     this.moveCost = this.setMoveCost(this.system);
-    this.init();
-  }
-  init() {
-    //Create Hex
-    this.createHex();
+    this.hexDOM = this.createHex(this.id, this.centerPoint, this.hexSize);
   }
   //Returns center point of given col and row values
   hexCenter(col, row, hexSize) {
@@ -857,7 +793,7 @@ class Hex {
     let x = col * (3 / 2 * hexSize) - hexSize / 2 + margin;
     let y = row * (Math.sqrt(3) * hexSize) - Math.sqrt(3) * hexSize / 2 + margin;
     //2nd Column offset
-    if (!(this.col % 2)) {
+    if (!(col % 2)) {
       y += Math.sqrt(3) / 2 * hexSize;
     }
     return {
@@ -865,21 +801,12 @@ class Hex {
       "y": y
     };
   }
-  //Credit to RedBlobGames for 100% of this:
-  oddqToAxial(col, row) {
-    let q = col;
-    let r = row - (col - (col % 2 === 0 ? col : 0));
-    return {
-      'q': q,
-      'r': r
-    };
-  }
   //Creates hex element
-  createHex() {
+  createHex(id, centerpoint, hexSize) {
     let newHex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
     let newHexGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    newHex.setAttribute("points", this.hexPoints());
-    newHex.setAttribute("id", `${this.id}`);
+    newHex.setAttribute("points", this.hexPoints(centerpoint, hexSize));
+    newHex.setAttribute("id", `${id}`);
     newHexGroup.setAttribute("class", "hex");
 
     //Adds onclick event
@@ -892,8 +819,9 @@ class Hex {
     newHexGroup.appendChild(newHex);
     document.getElementById("hex-group").appendChild(newHexGroup);
     if (this.system) {
-      this.setMarker(newHexGroup);
+      this.setMarker(centerpoint, newHexGroup);
     }
+    return newHex;
   }
   setSystem(id, centerPoint) {
     if ((0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.rollDice)(1) > 3) {
@@ -950,18 +878,18 @@ class Hex {
     document.getElementById(hex.id).setAttribute("class", "clicked-hex");
   }
   //Gets from hexCenter(), creates points for hex polygon
-  hexPoints() {
+  hexPoints(centerpoint, hexSize) {
     this.hexCenter();
-    let x = this.centerPoint.x;
-    let y = this.centerPoint.y;
+    let x = centerpoint.x;
+    let y = centerpoint.y;
     let points = ``;
 
     //Create Points list
     for (let i = 0; i < 6; i++) {
       const angleDeg = 60 * i;
       const angleRad = Math.PI / 180 * angleDeg;
-      let xPoint = this.hexSize * Math.cos(angleRad);
-      let yPoint = this.hexSize * Math.sin(angleRad);
+      let xPoint = hexSize * Math.cos(angleRad);
+      let yPoint = hexSize * Math.sin(angleRad);
       //Above gives pixel coordinates at a 0,0 point.
       //Now to translate that to correct location.
       xPoint += x;
@@ -970,10 +898,10 @@ class Hex {
     }
     return points;
   }
-  setMarker(newHex) {
+  setMarker(centerpoint, newHex) {
     //Useful code for creating a dot at the middle of a hex.
-    let cx = this.centerPoint.x;
-    let cy = this.centerPoint.y;
+    let cx = centerpoint.x;
+    let cy = centerpoint.y;
     let mark = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     mark.setAttribute("cx", cx);
     mark.setAttribute("cy", cy);
@@ -989,17 +917,17 @@ class Hex {
     ;
     return cost;
   }
-  setEdges(col, row, hex, SectorMap) {
+  setEdges(col, row, hexKey, SectorMap, colMax, rowMax) {
     let edges = [];
-    let parity = hex.col & 1;
+    let parity = col & 1;
     let dif = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.direction_differences[parity];
-    //THIS IS WRONG?
     dif.forEach(direction => {
-      let edgeCol = hex.col + direction[0];
-      let edgeRow = hex.row + direction[1];
-      if (edgeCol > 0 && edgeCol <= col && edgeRow > 0 && edgeRow <= row) {
+      let edgeCol = col + direction[0];
+      let edgeRow = row + direction[1];
+      if (edgeCol >= 0 && edgeCol <= colMax && edgeRow >= 0 && edgeRow <= rowMax) {
+        //Have to find each edge's key from col and row. I guess it saves having to do it each time by saving it to the hex object?
         SectorMap.forEach((hex, key) => {
-          if (hex.col == edgeCol && hex.row == edgeRow) {
+          if (hex.colNum == edgeCol && hex.rowNum == edgeRow) {
             edges.push({
               key: key,
               cost: hex.moveCost
@@ -1022,23 +950,18 @@ class Hex {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   checkActiveHex: () => (/* binding */ checkActiveHex),
 /* harmony export */   generateMap: () => (/* binding */ generateMap),
-/* harmony export */   getSectorData: () => (/* binding */ getSectorData),
-/* harmony export */   resetMap: () => (/* binding */ resetMap),
-/* harmony export */   runSimulation: () => (/* binding */ runSimulation)
+/* harmony export */   resetMap: () => (/* binding */ resetMap)
 /* harmony export */ });
 /* harmony import */ var _makemap_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./makemap.js */ "./src/modules/makemap.js");
 /* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities.js */ "./src/modules/utilities.js");
 
 
-function getSectorData() {
-  const sectorData = document.getElementById("hex-container").sectorDataContainer;
-  const sectorMap = sectorData.sector.SectorMap;
-  return sectorMap;
-}
+//Data structure:
+//document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.get([hexKey]);
+
 function generateMap(e) {
-  const dataContainer = {};
+  let dataContainer;
   let gen = e.target.parentElement;
   //Uses default values:
   let col = gen.col.value;
@@ -1055,7 +978,7 @@ function generateMap(e) {
     scale = 40;
   }
   if (document.querySelectorAll("#hex-container").length === 0) {
-    dataContainer.sector = new _makemap_js__WEBPACK_IMPORTED_MODULE_0__.Sector(col, row, scale);
+    dataContainer = new _makemap_js__WEBPACK_IMPORTED_MODULE_0__.Sector(col, row, scale);
   }
   //Creates Tab Display
   document.getElementById("tab-display").style.display = "block";
@@ -1069,7 +992,7 @@ function generateMap(e) {
     tabLinks[i].className = tabLinks[i].className.replace(" active", "");
   }
   document.getElementById("all-systems").className += " active";
-  (0,_utilities_js__WEBPACK_IMPORTED_MODULE_1__.allSystemsTable)(dataContainer.sector.systemList);
+  (0,_utilities_js__WEBPACK_IMPORTED_MODULE_1__.allSystemsTable)(dataContainer.systemList);
   document.getElementById("content-container").style.height = `${document.getElementById("svg-container").offsetHeight}px`;
   document.getElementById("run-button").style.display = "block";
   document.getElementById("reset-button").style.display = "block";
@@ -1104,45 +1027,6 @@ function resetMap() {
     tabLinks[t].style.display = "none";
   }
 }
-function runSimulation() {
-  const sectorMap = getSectorData();
-  const activeHexes = [];
-  sectorMap.SectorMap.forEach(checkActiveHex, activeHexes);
-  let maxValue = 0;
-  //At some point work out how to make this simpler!
-  activeHexes.forEach(hexKey => {
-    origin = sectorMap.SectorMap.get(hexKey);
-    origin.system.economicData.findTradePartners(hexKey);
-    origin.system.economicData.tradeRoutes.forEach((route, routeKey) => {
-      route.exchangeGoods();
-      sectorMap.TradeMap.set(routeKey, route);
-    });
-  });
-  activeHexes.forEach(hexKey => {
-    origin = sectorMap.SectorMap.get(hexKey);
-    origin.system.economicData.tradeRoutes.forEach(route => {
-      if (route.tradeRouteVolume > maxValue) {
-        maxValue = route.tradeRouteVolume;
-      }
-      ;
-    });
-  });
-  activeHexes.forEach(hexKey => {
-    origin = sectorMap.SectorMap.get(hexKey);
-    origin.system.economicData.tradeRoutes.forEach(route => {
-      //Issue in route.routeHexesArray
-      if (route.routeHexesArray.length > 0) {
-        route.drawConnectingLine(maxValue, route.routeHexesArray);
-      }
-      ;
-    });
-  });
-}
-function checkActiveHex(value, key) {
-  if (value.system) {
-    this.push(key);
-  }
-}
 
 /***/ }),
 
@@ -1159,6 +1043,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   uniformCostSearchPathfinder: () => (/* binding */ uniformCostSearchPathfinder),
 /* harmony export */   uniformCostSearchSystems: () => (/* binding */ uniformCostSearchSystems)
 /* harmony export */ });
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
+
+//Needs updating
 //https://www.geeksforgeeks.org/implementation-priority-queue-javascript/
 class PriorityQueue {
   constructor() {
@@ -1255,12 +1142,12 @@ class PriorityQueue {
 }
 function uniformCostSearchSystems(start, range) {
   const frontier = new PriorityQueue();
-  const graph = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
-  const cameFrom = new Map(); // Location, optional location B <= A
+  const sectorData = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
+  const graph = sectorData.SectorMap;
+  const reached = [];
   const costSoFar = new Map(); //Location, float
 
   frontier.put(start);
-  cameFrom.set(start, null);
   costSoFar.set(start, 0);
   while (!frontier.isEmpty()) {
     let currentKey = frontier.get();
@@ -1272,15 +1159,17 @@ function uniformCostSearchSystems(start, range) {
       if (!costSoFar.has(hex.key) && newCost <= hex.cost && newCost <= range) {
         costSoFar.set(hex.key, newCost);
         frontier.put(hex.key);
-        cameFrom.set(hex.key, current);
+        reached.push(hex.key);
       }
     });
   }
-  return cameFrom;
+  //Returns an array of [hex.key...].
+  return reached;
 }
 function uniformCostSearchPathfinder(start, goal, range) {
   const frontier = new PriorityQueue();
-  const graph = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
+  const sectorData = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
+  const graph = sectorData.SectorMap;
   const cameFrom = new Map(); // Location, optional location B <= A
   const costSoFar = new Map(); //Location, float
 
@@ -1323,6 +1212,61 @@ function reconstructPath(cameFrom, start, goal) {
 
 /***/ }),
 
+/***/ "./src/modules/simulation.js":
+/*!***********************************!*\
+  !*** ./src/modules/simulation.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   checkActiveHex: () => (/* binding */ checkActiveHex),
+/* harmony export */   runTradeSimulation: () => (/* binding */ runTradeSimulation)
+/* harmony export */ });
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
+
+function runTradeSimulation() {
+  const sector = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
+  const activeHexes = [];
+  sector.SectorMap.forEach(checkActiveHex, activeHexes);
+  let maxValue = 0;
+  console.log("Beep");
+  activeHexes.forEach(hexKey => {
+    origin = sector.SectorMap.get(hexKey);
+    let range = origin.system.economicData.tradeRange;
+    let tradePartners = origin.system.economicData.findTradePartners(hexKey, range);
+    if (tradePartners.length > 0) {
+      origin.system.economicData.setTradeRoutes(hexKey, tradePartners);
+    }
+  });
+  activeHexes.forEach(hexKey => {
+    origin = sector.SectorMap.get(hexKey);
+    origin.system.economicData.tradeRoutes.forEach(route => {
+      if (route.tradeRouteVolume > maxValue) {
+        maxValue = route.tradeRouteVolume;
+      }
+      ;
+    });
+  });
+  activeHexes.forEach(hexKey => {
+    origin = sector.SectorMap.get(hexKey);
+    origin.system.economicData.tradeRoutes.forEach(route => {
+      //Issue in route.routeHexesArray
+      if (route.routeHexesArray.length > 0) {
+        route.drawConnectingLine(maxValue, route.routeHexesArray);
+      }
+      ;
+    });
+  });
+}
+function checkActiveHex(value, key) {
+  if (value.system) {
+    this.push(key);
+  }
+}
+
+/***/ }),
+
 /***/ "./src/modules/system.js":
 /*!*******************************!*\
   !*** ./src/modules/system.js ***!
@@ -1342,28 +1286,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class System {
-  constructor(id, centerPoint) {
+  constructor(hexKey, id, centerPoint) {
     this.id = id;
     this.centerPoint = centerPoint;
     this.systemRolls = this.setSystemRolls();
-    this.systemData = {
-      systemName: this.generateName(),
-      size: this.setSize(this.systemRolls.get('planetSize')),
-      atmosphere: this.setAtmosphere(this.systemRolls.get('atmoType')),
-      hydrographics: this.setHydrographics(this.systemRolls.get('hydroType'), this.systemRolls.get('planetSize')),
-      population: this.setPopulation(this.systemRolls.get('population')),
-      government: this.setGovernment(this.systemRolls.get('government')),
-      lawLevel: this.setLaw(this.systemRolls.get('lawLevel')),
-      techLevel: this.setTL(this.systemRolls.get('tl')),
-      starport: this.setStarport(this.systemRolls.get('starport')),
-      tradeCodes: this.setTradeCodes(this.systemRolls, _systemConstants_js__WEBPACK_IMPORTED_MODULE_2__.TRADECODEREQS)
-    };
+    this.systemData = this.setSystemData(this.systemRolls);
     this.uwp = this.setUWP(this.systemRolls);
-    this.economicData = new _economy_js__WEBPACK_IMPORTED_MODULE_0__.Economy(this.systemRolls.get('tl'), this.systemRolls.get('government'), this.systemRolls.get('population'), this.systemData.tradeCodes);
-    this.init();
-  }
-  init() {
-    this.tableData();
+    this.economicData = new _economy_js__WEBPACK_IMPORTED_MODULE_0__.Economy(hexKey, this.systemRolls.get('tl'), this.systemRolls.get('government'), this.systemRolls.get('population'), this.systemData.tradeCodes);
+    this.tableData = this.setTableData();
   }
   setSystemRolls() {
     let systemRolls = new Map([]);
@@ -1469,9 +1399,23 @@ class System {
     systemRolls.set('tl', TL);
     return systemRolls;
   }
+  setSystemData(systemRolls) {
+    return {
+      systemName: this.generateName(),
+      size: this.setSize(systemRolls.get('planetSize')),
+      atmosphere: this.setAtmosphere(systemRolls.get('atmoType')),
+      hydrographics: this.setHydrographics(systemRolls.get('hydroType'), systemRolls.get('planetSize')),
+      population: this.setPopulation(systemRolls.get('population')),
+      government: this.setGovernment(systemRolls.get('government')),
+      lawLevel: this.setLaw(systemRolls.get('lawLevel')),
+      techLevel: this.setTL(systemRolls.get('tl')),
+      starport: this.setStarport(systemRolls.get('starport')),
+      tradeCodes: this.setTradeCodes(systemRolls, _systemConstants_js__WEBPACK_IMPORTED_MODULE_2__.TRADECODEREQS)
+    };
+  }
 
   //Returns formatted system data for table - redundant?
-  tableData() {
+  setTableData() {
     let formattedPop = this.systemData.population.totalPopulation.toLocaleString();
     let tradeCodeLongArray = [];
     let formattedTradeCodes;
@@ -1480,7 +1424,7 @@ class System {
       tradeCodeLongArray.push(_economyConstants_js__WEBPACK_IMPORTED_MODULE_1__.TRADECODES[code].codeName);
     });
     formattedTradeCodes = tradeCodeLongArray.join(", ");
-    return this.tableData = {
+    return {
       "UWP": `${this.uwp}`,
       "Name": this.systemData.systemName,
       "Size": `${this.systemData.size.size} km`,
@@ -1873,33 +1817,28 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   TradeRoute: () => (/* binding */ TradeRoute)
 /* harmony export */ });
-/* harmony import */ var _mapCode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mapCode.js */ "./src/modules/mapCode.js");
+/* harmony import */ var _utilities_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities.js */ "./src/modules/utilities.js");
 /* harmony import */ var _pathfinding_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./pathfinding.js */ "./src/modules/pathfinding.js");
 
 
 class TradeRoute {
-  constructor(startHex, endHex, tradeData, maxRange) {
-    this.startId = startHex.id;
-    this.endId = endHex.id;
-    this.routeKey = this.startId + " <=> " + this.endId;
-    this.maxRange = maxRange;
-    this.routeHexesArray = this.findRoute(startHex.hexKey, endHex.hexKey, this.maxRange);
-    this.startTradeInfo = startHex.system.economicData.tradeInfo;
-    this.endTradeInfo = endHex.system.economicData.tradeInfo;
-    this.startTradeData = tradeData;
-    this.routeTradeCapacity = this.setHighestTradeCapacity(startHex.system.economicData.tradeCapacity, endHex.system.economicData.tradeCapacity);
+  constructor(start, end, maxRange) {
+    this.startKey = start;
+    this.endKey = end;
+    this.routeKey = `${start}=>${end}`;
+    this.routeHexesArray = this.findRoute(start, end, maxRange);
+    this.startSystem = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.getSystem)(start);
+    this.endSystem = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.getSystem)(end);
+    this.startTradeInfo = this.startSystem.system.economicData.tradeInfo;
+    this.endTradeInfo = this.endSystem.system.economicData.tradeInfo;
+    this.routeTradeCapacity = this.setHighestTradeCapacity(this.startSystem.system.economicData.tradeCapacity, this.endSystem.system.economicData.tradeCapacity);
+    //Need to fix tradeRouteVolume to fix line width.
     this.tradeRouteVolume = 0;
     this.tradeRouteProfit = 0;
     this.tradeRouteDetails = [];
   }
   //Red Blob Games to the rescue
   findRoute(start, end, range) {
-    const sectorMap = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
-    let startHex = sectorMap.get(start);
-    let endHex = sectorMap.get(end);
-    if (range == 0) {
-      return;
-    }
     let pathFinder = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_1__.uniformCostSearchPathfinder)(start, end, range);
     let route = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_1__.reconstructPath)(pathFinder, start, end);
     return route;
@@ -1958,7 +1897,7 @@ class TradeRoute {
     const width = this.calculateTradeRouteWidth(this.tradeRouteVolume, maxValue);
     const routeKey = this.routeKey;
     const tradeGroup = document.getElementById("trade-group");
-    const sectorData = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
+    const sectorData = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
     if (pathArray.length == 0) {
       return;
     }
@@ -1993,7 +1932,7 @@ class TradeRoute {
     return width;
   }
   tradeRouteOnClick() {
-    const SectorTradeRoutes = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.TradeMap;
+    const SectorTradeRoutes = document.getElementById("hex-container").sectorDataContainer.SectorMap;
     console.log(this.id);
     let clickedRoute = SectorTradeRoutes.get(this.id);
     console.log(clickedRoute);
@@ -2014,6 +1953,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   direction_differences: () => (/* binding */ direction_differences),
 /* harmony export */   generateInfoBox: () => (/* binding */ generateInfoBox),
 /* harmony export */   generateTradeBox: () => (/* binding */ generateTradeBox),
+/* harmony export */   getSectorData: () => (/* binding */ getSectorData),
+/* harmony export */   getSystem: () => (/* binding */ getSystem),
 /* harmony export */   openTab: () => (/* binding */ openTab),
 /* harmony export */   rollDice: () => (/* binding */ rollDice)
 /* harmony export */ });
@@ -2021,9 +1962,18 @@ __webpack_require__.r(__webpack_exports__);
 
 const direction_differences = [
 // even cols 
-[[+1, +1], [+1, 0], [0, -1], [-1, 0], [-1, +1], [0, +1]],
+[[+1, 0], [+1, -1], [0, -1], [-1, -1], [-1, 0], [0, +1]],
 // odd cols 
-[[+1, 0], [+1, -1], [0, -1], [-1, -1], [-1, 0], [0, +1]]];
+[[+1, +1], [+1, 0], [0, -1], [-1, 0], [-1, +1], [0, +1]]];
+function getSectorData() {
+  const sectorData = document.getElementById("hex-container").sectorDataContainer;
+  return sectorData;
+}
+function getSystem(hexKey) {
+  const sectorData = getSectorData();
+  let system = sectorData.SectorMap.get(hexKey);
+  return system;
+}
 function rollDice(numDice) {
   let total = 0;
   for (let i = 0; i < numDice; i++) {
@@ -2181,6 +2131,7 @@ function generateTradeBox(data) {
   tradeBox.appendChild(displayTable);
 }
 //Bring into standard with above table
+//Currently not working
 function allSystemsTable(systemsList) {
   let systemsBox = document.getElementById("all-systems-content");
   //Creates table
@@ -2199,7 +2150,7 @@ function allSystemsTable(systemsList) {
 
   //Creates rows
   for (let i = 1; i < systemsList.size; i++) {
-    let listItem = systemsList.get(i - 1);
+    let listItem = systemsList[i - 1][1];
     let row = displayTable.insertRow(i);
     let hex = row.insertCell(0);
     let name = row.insertCell(1);
@@ -2274,6 +2225,7 @@ var __webpack_exports__ = {};
   \*********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_mapCode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/mapCode.js */ "./src/modules/mapCode.js");
+/* harmony import */ var _modules_simulation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/simulation.js */ "./src/modules/simulation.js");
 /**
  * Use this file for JavaScript code that you want to run in the front-end
  * on posts/pages that contain this block.
@@ -2298,9 +2250,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /* eslint-disable no-console */
 
+
 document.getElementById("generator-button").addEventListener('click', _modules_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.generateMap);
 document.getElementById("reset-button").addEventListener('click', _modules_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.resetMap);
-document.getElementById("run-button").addEventListener('click', _modules_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.runSimulation);
+document.getElementById("run-button").addEventListener('click', _modules_simulation_js__WEBPACK_IMPORTED_MODULE_1__.runTradeSimulation);
 /* eslint-enable no-console */
 /******/ })()
 ;

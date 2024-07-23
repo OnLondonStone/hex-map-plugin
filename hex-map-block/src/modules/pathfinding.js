@@ -1,3 +1,5 @@
+import { getSectorData } from "./utilities";
+//Needs updating
 //https://www.geeksforgeeks.org/implementation-priority-queue-javascript/
 export class PriorityQueue {
   constructor() {
@@ -111,14 +113,14 @@ export class PriorityQueue {
 
 export function uniformCostSearchSystems(start, range){
   const frontier = new PriorityQueue();
-  const graph = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
+  const sectorData = getSectorData();
+  const graph = sectorData.SectorMap;
 
 
-  const cameFrom = new Map(); // Location, optional location B <= A
+  const reached = [];
   const costSoFar = new Map(); //Location, float
 
   frontier.put(start);
-  cameFrom.set(start, null);
   costSoFar.set(start, 0);
 
 
@@ -134,15 +136,17 @@ export function uniformCostSearchSystems(start, range){
             if ((!(costSoFar.has(hex.key))) && (newCost <= hex.cost) && (newCost <= range)){
             costSoFar.set(hex.key, newCost);
             frontier.put(hex.key);
-            cameFrom.set(hex.key, current);
+            reached.push(hex.key);
                 }
             })
     }
-  return cameFrom;
+    //Returns an array of [hex.key...].
+  return reached;
 }
 export function uniformCostSearchPathfinder(start, goal, range){
     const frontier = new PriorityQueue();
-    const graph = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
+    const sectorData = getSectorData();
+    const graph = sectorData.SectorMap;
   
   
     const cameFrom = new Map(); // Location, optional location B <= A
