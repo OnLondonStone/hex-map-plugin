@@ -2160,7 +2160,7 @@ function generateTradeBox(data) {
   displayTable.appendChild(tblbody);
   tradeBox.appendChild(displayTable);
 }
-//Broken right now
+//Bring into standard with above table
 function allSystemsTable(systemsList) {
   let systemsBox = document.getElementById("all-systems-content");
   //Creates table
@@ -2179,7 +2179,7 @@ function allSystemsTable(systemsList) {
 
   //Creates rows
   for (let i = 1; i < systemsList.size; i++) {
-    let listItem = systemsList.get(i);
+    let listItem = systemsList.get(i - 1);
     let row = displayTable.insertRow(i);
     let hex = row.insertCell(0);
     let name = row.insertCell(1);
