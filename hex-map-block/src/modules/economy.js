@@ -130,23 +130,25 @@ export class Economy{
        return demand;
     }
     setTradeRange(tech, tradeCodes){
-        let tradeRange = 2;
+        let tradeRange = 0;
+
+        if( tech < 9 ){ tradeRange = 0 };
+        if( tech >= 9 ){ tradeRange = 1 };
+        if( tech == 11){ tradeRange = 2 };
+        if( tech == 12){ tradeRange = 3 };
+        if( tech == 13){ tradeRange = 4 };
+        if( tech == 14){ tradeRange = 5 };
+        if( tech >= 15){ tradeRange = 6 };
 
         if (tradeCodes.includes("Ba")){ tradeRange = 0 };
-        if (tradeCodes.includes("Po")){ tradeRange = 1 };
-        if (tradeCodes.includes("Ri")){ tradeRange = 3 };
 
-        //Poss include trade range as a factor
         return tradeRange;
     }
-    //findTradeRoutes(hexKey, distance);
     findTradePartners(startKey){
-        const sectorMap = getSectorData();
-        const originSystem = sectorMap.SectorMap.get(startKey);
-
-
+        if(this.tradeRange > 0){
         let tradePartnersList = uniformCostSearchSystems(startKey, this.tradeRange);
         if(tradePartnersList.size > 0){tradePartnersList.forEach(this.setTradeRoute)}
+        }
 
     }
     setTradeRoute(tradePartner, originKey){
@@ -190,8 +192,10 @@ export class Economy{
             })
             if(selling.length > 0 || buying.length > 0){
                 let tradeData = {sellingIdArray : selling, buyingIdArray : buying};
-                let newRoute = new TradeRoute(originSystem, tradePartner, tradeData, originSystem.system.economicData.tradeRange);
-                originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute)
+                if(originSystem.system.economicData.tradeRange > 0){
+                    let newRoute = new TradeRoute(originSystem, tradePartner, tradeData, originSystem.system.economicData.tradeRange);
+                    originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
+                    }
             }  
         }
     }

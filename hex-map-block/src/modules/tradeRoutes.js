@@ -25,6 +25,10 @@ export class TradeRoute{
         let startHex = sectorMap.get(start);
         let endHex = sectorMap.get(end);
 
+        if(range == 0){
+            return;
+        }
+
         let pathFinder = uniformCostSearchPathfinder(start, end, range);
         let route = reconstructPath(pathFinder, start, end);
 
@@ -118,7 +122,6 @@ export class TradeRoute{
         //Oh god, basic maths
         let min = maxValue / 100;
         let widthPercent = routeValue / (min*100);
-        console.log(widthPercent);//Working
         width = Math.tanh(widthPercent) *20;
         if(width < 4){ width = 4};
 

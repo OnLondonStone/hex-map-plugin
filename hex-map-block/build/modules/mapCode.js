@@ -159,30 +159,47 @@ class Economy {
     return demand;
   }
   setTradeRange(tech, tradeCodes) {
-    let tradeRange = 2;
+    let tradeRange = 0;
+    if (tech < 9) {
+      tradeRange = 0;
+    }
+    ;
+    if (tech >= 9) {
+      tradeRange = 1;
+    }
+    ;
+    if (tech == 11) {
+      tradeRange = 2;
+    }
+    ;
+    if (tech == 12) {
+      tradeRange = 3;
+    }
+    ;
+    if (tech == 13) {
+      tradeRange = 4;
+    }
+    ;
+    if (tech == 14) {
+      tradeRange = 5;
+    }
+    ;
+    if (tech >= 15) {
+      tradeRange = 6;
+    }
+    ;
     if (tradeCodes.includes("Ba")) {
       tradeRange = 0;
     }
     ;
-    if (tradeCodes.includes("Po")) {
-      tradeRange = 1;
-    }
-    ;
-    if (tradeCodes.includes("Ri")) {
-      tradeRange = 3;
-    }
-    ;
-
-    //Poss include trade range as a factor
     return tradeRange;
   }
-  //findTradeRoutes(hexKey, distance);
   findTradePartners(startKey) {
-    const sectorMap = (0,_mapCode_js__WEBPACK_IMPORTED_MODULE_2__.getSectorData)();
-    const originSystem = sectorMap.SectorMap.get(startKey);
-    let tradePartnersList = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_3__.uniformCostSearchSystems)(startKey, this.tradeRange);
-    if (tradePartnersList.size > 0) {
-      tradePartnersList.forEach(this.setTradeRoute);
+    if (this.tradeRange > 0) {
+      let tradePartnersList = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_3__.uniformCostSearchSystems)(startKey, this.tradeRange);
+      if (tradePartnersList.size > 0) {
+        tradePartnersList.forEach(this.setTradeRoute);
+      }
     }
   }
   setTradeRoute(tradePartner, originKey) {
@@ -223,8 +240,10 @@ class Economy {
           sellingIdArray: selling,
           buyingIdArray: buying
         };
-        let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(originSystem, tradePartner, tradeData, originSystem.system.economicData.tradeRange);
-        originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
+        if (originSystem.system.economicData.tradeRange > 0) {
+          let newRoute = new _tradeRoutes_js__WEBPACK_IMPORTED_MODULE_1__.TradeRoute(originSystem, tradePartner, tradeData, originSystem.system.economicData.tradeRange);
+          originSystem.system.economicData.tradeRoutes.set(newRoute.routeKey, newRoute);
+        }
       }
     }
   }
@@ -1113,7 +1132,6 @@ function runSimulation() {
     origin.system.economicData.tradeRoutes.forEach(route => {
       //Issue in route.routeHexesArray
       if (route.routeHexesArray.length > 0) {
-        console.log(route, route.routeHexesArray);
         route.drawConnectingLine(maxValue, route.routeHexesArray);
       }
       ;
@@ -1879,6 +1897,9 @@ class TradeRoute {
     const sectorMap = document.getElementById("hex-container").sectorDataContainer.sector.SectorMap.SectorMap;
     let startHex = sectorMap.get(start);
     let endHex = sectorMap.get(end);
+    if (range == 0) {
+      return;
+    }
     let pathFinder = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_1__.uniformCostSearchPathfinder)(start, end, range);
     let route = (0,_pathfinding_js__WEBPACK_IMPORTED_MODULE_1__.reconstructPath)(pathFinder, start, end);
     return route;
@@ -1964,7 +1985,6 @@ class TradeRoute {
     //Oh god, basic maths
     let min = maxValue / 100;
     let widthPercent = routeValue / (min * 100);
-    console.log(widthPercent); //Working
     width = Math.tanh(widthPercent) * 20;
     if (width < 4) {
       width = 4;

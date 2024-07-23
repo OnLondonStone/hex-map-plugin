@@ -101,7 +101,6 @@ export function runSimulation(){
         origin.system.economicData.tradeRoutes.forEach((route) =>{
             //Issue in route.routeHexesArray
             if(route.routeHexesArray.length > 0){
-                console.log(route, route.routeHexesArray)
             route.drawConnectingLine(maxValue, route.routeHexesArray)};})
     })
 }
