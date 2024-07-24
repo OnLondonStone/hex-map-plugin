@@ -21,8 +21,9 @@
  */
 
 /* eslint-disable no-console */
-import {generateMap, resetMap, runSimulation} from "./modules/mapCode.js";
+import {generateMap, resetMap} from "./modules/mapCode.js";
+import { runTradeSimulation } from "./modules/simulation.js";
 document.getElementById("generator-button").addEventListener('click', generateMap);
 document.getElementById("reset-button").addEventListener('click', resetMap);
-document.getElementById("run-button").addEventListener('click', runSimulation);
+document.getElementById("run-button").addEventListener('click', runTradeSimulation);
 /* eslint-enable no-console */

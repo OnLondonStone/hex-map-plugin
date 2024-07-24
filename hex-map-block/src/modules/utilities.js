@@ -1,13 +1,27 @@
 import { TRADEGOODS } from "./economyConstants.js";
 
+export const DOMIdToHexKeyMap = new Map();
+export const HexKeyToDOMIdMap = new Map();
+
 export const direction_differences = [
   // even cols 
+  [[+1,  0], [+1, -1], [ 0, -1], 
+   [-1, -1], [-1,  0], [ 0, +1]],
+  // odd cols 
   [[+1, +1], [+1,  0], [ 0, -1], 
    [-1,  0], [-1, +1], [ 0, +1]],
-  // odd cols 
-  [[+1,  0], [+1, -1], [ 0, -1], 
-   [-1, -1], [-1,  0], [ 0, +1]]
-]
+];
+
+export function getSectorData(){
+  const sectorData = document.getElementById("hex-container").sectorDataContainer;
+  return sectorData;
+}
+
+export function getSystem(hexKey){
+  const sectorData = getSectorData();
+  let system = sectorData.SectorMap.get(hexKey);
+  return system;
+}
 
 export function rollDice(numDice){
 
@@ -58,6 +72,7 @@ export function generateInfoBox(tableData){
   let displayTable = document.createElement("table");
 
   displayTable.setAttribute("class", "info-table");
+  displayTable.setAttribute("id", "all-systems-table");
 
   //Populates rows:
   let labels = [];
@@ -164,6 +179,7 @@ export function generateTradeBox(data){
   tradeBox.appendChild(displayTable);
 }
 //Bring into standard with above table
+//Currently not working
 export function allSystemsTable(systemsList){
   let systemsBox = document.getElementById("all-systems-content");
   //Creates table
@@ -172,6 +188,7 @@ export function allSystemsTable(systemsList){
   document.getElementById("content-container").style.height=`${document.getElementById("svg-container").offsetHeight}px`;
  
   displayTable.setAttribute("class", "info-table");
+  displayTable.setAttribute("id", "all-systems-table");
   systemsBox.appendChild(displayTable);
   //Creates headings - Maybe there's a better way of doing it?
   let headings = displayTable.insertRow(0);
@@ -183,16 +200,81 @@ export function allSystemsTable(systemsList){
   headingUWP.innerHTML = "UWP";
 
   //Creates rows
-  for(let i = 1; i < systemsList.size; i++){
-      let listItem = systemsList.get(i-1);
+  for(let i = 1; i <= systemsList.length; i++){
+    let listKey = systemsList[i-1][0];
+    let listItem = systemsList[i-1][1];
 
-      let row = displayTable.insertRow(i);
-      let hex = row.insertCell(0);
-      let name = row.insertCell(1);
-      let uwp = row.insertCell(2);
-      
-      hex.innerHTML = listItem.hex;
-      name.innerHTML = listItem.name;
-      uwp.innerHTML = listItem.uwp;
+    let row = displayTable.insertRow(i);
+    let hex = row.insertCell(0);
+    hex.setAttribute("class", "allSystemsCell");
+    let name = row.insertCell(1);
+    name.setAttribute("class", "allSystemsCell");
+    let uwp = row.insertCell(2);
+    uwp.setAttribute("class", "allSystemsCell");
+
+    row.setAttribute("id", `Row: ${listKey}`);
+    row.setAttribute("class", "allSystemsRow");
+
+    let relatedHex;
+    row.onmouseover = (event) => {
+      let selectedRowHex = event.currentTarget.id;
+      let hexKey = DOMIdToHexKeyMap.get(selectedRowHex);
+      relatedHex = getSystem(hexKey);
+      let rowCells = event.currentTarget.childNodes;
+      rowCells.forEach(function(cell){cell.setAttribute("class", "allSystemsCellHover")});
+      document.getElementById(`${relatedHex.id}`).setAttribute("class","hover-hex");
+      //this doesn't leave the original hex as clicked-hex
+
+
+    }
+    row.onmouseout = (event) => {
+      let selectedRowHex = event.currentTarget.id;
+      let hexKey = DOMIdToHexKeyMap.get(selectedRowHex);
+      relatedHex = getSystem(hexKey);
+      let rowCells = event.currentTarget.childNodes;
+      rowCells.forEach(function(cell){cell.setAttribute("class", "allSystemsCell")});
+      let relatedHexPolygon = document.getElementById(`${relatedHex.id}`);
+      if(relatedHexPolygon.getAttribute("class") != "clicked-hex"){
+        relatedHexPolygon.setAttribute("class","hex");}
+    }
+    row.onclick = function(){
+      (relatedHex.hexOnClick(relatedHex))
+      document.getElementById(`${relatedHex.id}`).setAttribute("class","clicked-hex");
+    };
+    
+    hex.innerHTML = listItem.hex;
+    name.innerHTML = listItem.name;
+    uwp.innerHTML = listItem.uwp;
   } 
+}
+//Code from https://stackoverflow.com/questions/45408920/plain-javascript-scrollintoview-inside-div
+export function scrollParentToChild(parent, child) {
+
+  // Where is the parent on page
+  var parentRect = parent.getBoundingClientRect();
+  // What can you see?
+  var parentViewableArea = {
+    height: parent.clientHeight,
+    width: parent.clientWidth
+  };
+
+  // Where is the child
+  var childRect = child.getBoundingClientRect();
+  // Is the child viewable?
+  var isViewable = (childRect.top >= parentRect.top) && (childRect.bottom <= parentRect.top + parentViewableArea.height);
+
+  // if you can't see the child try to scroll parent
+  if (!isViewable) {
+        // Should we scroll using top or bottom? Find the smaller ABS adjustment
+        const scrollTop = childRect.top - parentRect.top;
+        const scrollBot = childRect.bottom - parentRect.bottom;
+        if (Math.abs(scrollTop) < Math.abs(scrollBot)) {
+            // we're near the top of the list
+            parent.scrollTop += scrollTop;
+        } else {
+            // we're near the bottom of the list
+            parent.scrollTop += scrollBot;
+        }
+  }
+
 }

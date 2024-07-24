@@ -4,28 +4,14 @@ import { SYSTEM, TRADECODEREQS } from "./systemConstants.js";
 import { rollDice } from "./utilities.js";
 
 export class System{
-    constructor(id, centerPoint){
+    constructor(hexKey, id, centerPoint){
         this.id = id;
         this.centerPoint = centerPoint;
         this.systemRolls = this.setSystemRolls();
-        this.systemData = {
-            systemName : this.generateName(),
-            size : this.setSize(this.systemRolls.get('planetSize')),
-            atmosphere : this.setAtmosphere(this.systemRolls.get('atmoType')),
-            hydrographics : this.setHydrographics(this.systemRolls.get('hydroType'), this.systemRolls.get('planetSize')),
-            population : this.setPopulation(this.systemRolls.get('population')),
-            government : this.setGovernment(this.systemRolls.get('government')),
-            lawLevel : this.setLaw(this.systemRolls.get('lawLevel')),
-            techLevel : this.setTL(this.systemRolls.get('tl')),
-            starport : this.setStarport(this.systemRolls.get('starport')),
-            tradeCodes : this.setTradeCodes(this.systemRolls, TRADECODEREQS)
-        }
+        this.systemData = this.setSystemData(this.systemRolls);
         this.uwp = this.setUWP(this.systemRolls);
-        this.economicData = new Economy(this.systemRolls.get('tl'), this.systemRolls.get('government'), this.systemRolls.get('population'), this.systemData.tradeCodes);
-        this.init();
-    }
-    init(){
-        this.tableData();
+        this.economicData = new Economy(hexKey, this.systemRolls.get('tl'), this.systemRolls.get('government'), this.systemRolls.get('population'), this.systemData.tradeCodes);
+        this.tableData = this.setTableData();
     }
     setSystemRolls(){
         let systemRolls = new Map([])
@@ -104,9 +90,23 @@ export class System{
     
         return systemRolls;
     }
+    setSystemData(systemRolls){
+        return {
+            systemName : this.generateName(),
+            size : this.setSize(systemRolls.get('planetSize')),
+            atmosphere : this.setAtmosphere(systemRolls.get('atmoType')),
+            hydrographics : this.setHydrographics(systemRolls.get('hydroType'), systemRolls.get('planetSize')),
+            population : this.setPopulation(systemRolls.get('population')),
+            government : this.setGovernment(systemRolls.get('government')),
+            lawLevel : this.setLaw(systemRolls.get('lawLevel')),
+            techLevel : this.setTL(systemRolls.get('tl')),
+            starport : this.setStarport(systemRolls.get('starport')),
+            tradeCodes : this.setTradeCodes(systemRolls, TRADECODEREQS)
+        }
+    }
 
     //Returns formatted system data for table - redundant?
-    tableData(){ 
+    setTableData(){ 
         let formattedPop = this.systemData.population.totalPopulation.toLocaleString();
         let tradeCodeLongArray = [];
         let formattedTradeCodes;
@@ -118,8 +118,7 @@ export class System{
 
         formattedTradeCodes = tradeCodeLongArray.join(", ")
 
-        return this.tableData = 
-                {"UWP":`${this.uwp}`,
+        return {"UWP":`${this.uwp}`,
                 "Name": this.systemData.systemName,
                 "Size":`${this.systemData.size.size} km`,
                 "Gravity":`${this.systemData.size.gravity} Earth Normal`, 

@@ -44,6 +44,11 @@ g.hex-group {
   opacity: 0.6;
 }
 
+.hover-hex {
+  fill: #f4442e;
+  opacity: 0.6;
+}
+
 #generator-button:hover {
   background-color: #878E88;
   color: #f4442e;
@@ -61,6 +66,15 @@ g.hex-group {
 
 .tab-content {
   display: flex;
+}
+
+.allSystemsCell {
+  background-color: transparent;
+}
+
+.allSystemsCellHover {
+  background-color: #f4442e !important;
+  opacity: 0.6;
 }
 
 .info-container {
