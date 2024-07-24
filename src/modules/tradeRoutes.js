@@ -126,4 +126,21 @@ export class TradeRoute{
         let clickedRoute = SectorTradeRoutes.get(this.id);
         console.log(clickedRoute);
     }
+    setAmount(originGood, partnerGood, type){
+        this.startTradeInfo = this.startSystem.system.economicData.tradeInfo;
+        this.endTradeInfo = this.endSystem.system.economicData.tradeInfo;
+        let max = this.routeTradeCapacity;
+        let amountArray = [];
+
+
+        if(type == "sell"){
+            //supply -> demand
+            amountArray = [originGood.supplyAmount, partnerGood.demandAmount, max]}
+
+        if(type == "buy"){
+            //demand -> supply
+            amountArray = [originGood.demandAmount, partnerGood.supplyAmount, max]}
+        let lowest = Math.min(...amountArray);
+        return lowest;
+    }
 }
