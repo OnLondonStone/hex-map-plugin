@@ -2149,7 +2149,7 @@ function allSystemsTable(systemsList) {
   headingUWP.innerHTML = "UWP";
 
   //Creates rows
-  for (let i = 1; i < systemsList.size; i++) {
+  for (let i = 1; i < systemsList.length; i++) {
     let listItem = systemsList[i - 1][1];
     let row = displayTable.insertRow(i);
     let hex = row.insertCell(0);
