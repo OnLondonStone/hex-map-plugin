@@ -1,4 +1,4 @@
-import { openTab, generateInfoBox, generateTradeBox, rollDice, direction_differences } from "./utilities.js";
+import { openTab, generateInfoBox, generateTradeBox, rollDice, direction_differences, DOMIdToHexKeyMap, HexKeyToDOMIdMap, scrollParentToChild } from "./utilities.js";
 import { System } from "./system.js";
 //TRY AND REPLACE ALL USES OF map with SECTOR if Map
 
@@ -47,6 +47,8 @@ export class Sector{
 
                 if(hex.system){
                     let tableRow = {hex : hex.id, name : hex.system.tableData.Name, uwp: hex.system.tableData.UWP};
+                    DOMIdToHexKeyMap.set(`Row: ${hex.id}`, hex.hexKey);
+                    HexKeyToDOMIdMap.set(hex.hexKey, `Row: ${hex.id}`);
                     systemList.push([hex.hexKey, tableRow]);
                 }
             }
@@ -66,10 +68,10 @@ export class Hex {
         this.hexSize = hexSize;
         this.centerPoint = this.hexCenter(col, row, hexSize);
         this.edges;
-        this.id = `${this.colNum}, ${this.rowNum}`;
+        this.id = `${this.colNum},${this.rowNum}`;
         this.system = this.setSystem(this.id, this.centerPoint);
         this.moveCost = this.setMoveCost(this.system);
-        this.hexDOM = this.createHex(this.id, this.centerPoint, this.hexSize);
+        this.hexDOM = this.createHex(this.id, this.centerPoint, this.hexSize, this.hexKey);
     }    
     //Returns center point of given col and row values
     hexCenter(col, row, hexSize){
@@ -81,7 +83,7 @@ export class Hex {
         return {"x":x, "y":y};
     }
     //Creates hex element
-    createHex(id, centerpoint, hexSize){
+    createHex(id, centerpoint, hexSize, hexKey){
         let newHex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         let newHexGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
@@ -92,6 +94,28 @@ export class Hex {
         //Adds onclick event
         newHexGroup.setAttribute("class","hex-group");
         newHexGroup.addEventListener("click", ()=>{this.hexOnClick(this);});
+
+        //Adds hover
+        newHexGroup.onmouseover = function(){
+            let rowId = HexKeyToDOMIdMap.get(hexKey);
+            let container = document.getElementById("content-container");
+            let relatedTableEntry = document.getElementById(rowId);
+            if(relatedTableEntry != null){
+                scrollParentToChild(container, relatedTableEntry);
+                let rowCells = relatedTableEntry.childNodes;
+                rowCells.forEach(function(cell){cell.setAttribute("class", "allSystemsCellHover")});
+            }
+        }
+        newHexGroup.onmouseout = function(){
+            let rowId = HexKeyToDOMIdMap.get(hexKey);
+            let table = document.getElementById("all-systems-table");
+            let relatedTableEntry = document.getElementById(rowId);
+            if(relatedTableEntry != null){
+                let rowCells = relatedTableEntry.childNodes;
+                rowCells.forEach(function(cell){cell.setAttribute("class", "allSystemsCell")});}
+        }
+
+
         
         //Adds the new hex element to container
         newHexGroup.appendChild(newHex);

@@ -761,6 +761,8 @@ class Sector {
             name: hex.system.tableData.Name,
             uwp: hex.system.tableData.UWP
           };
+          _utilities_js__WEBPACK_IMPORTED_MODULE_0__.DOMIdToHexKeyMap.set(`Row: ${hex.id}`, hex.hexKey);
+          _utilities_js__WEBPACK_IMPORTED_MODULE_0__.HexKeyToDOMIdMap.set(hex.hexKey, `Row: ${hex.id}`);
           systemList.push([hex.hexKey, tableRow]);
         }
       }
@@ -782,10 +784,10 @@ class Hex {
     this.hexSize = hexSize;
     this.centerPoint = this.hexCenter(col, row, hexSize);
     this.edges;
-    this.id = `${this.colNum}, ${this.rowNum}`;
+    this.id = `${this.colNum},${this.rowNum}`;
     this.system = this.setSystem(this.id, this.centerPoint);
     this.moveCost = this.setMoveCost(this.system);
-    this.hexDOM = this.createHex(this.id, this.centerPoint, this.hexSize);
+    this.hexDOM = this.createHex(this.id, this.centerPoint, this.hexSize, this.hexKey);
   }
   //Returns center point of given col and row values
   hexCenter(col, row, hexSize) {
@@ -802,7 +804,7 @@ class Hex {
     };
   }
   //Creates hex element
-  createHex(id, centerpoint, hexSize) {
+  createHex(id, centerpoint, hexSize, hexKey) {
     let newHex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
     let newHexGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     newHex.setAttribute("points", this.hexPoints(centerpoint, hexSize));
@@ -814,6 +816,31 @@ class Hex {
     newHexGroup.addEventListener("click", () => {
       this.hexOnClick(this);
     });
+
+    //Adds hover
+    newHexGroup.onmouseover = function () {
+      let rowId = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.HexKeyToDOMIdMap.get(hexKey);
+      let container = document.getElementById("content-container");
+      let relatedTableEntry = document.getElementById(rowId);
+      if (relatedTableEntry != null) {
+        (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.scrollParentToChild)(container, relatedTableEntry);
+        let rowCells = relatedTableEntry.childNodes;
+        rowCells.forEach(function (cell) {
+          cell.setAttribute("class", "allSystemsCellHover");
+        });
+      }
+    };
+    newHexGroup.onmouseout = function () {
+      let rowId = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.HexKeyToDOMIdMap.get(hexKey);
+      let table = document.getElementById("all-systems-table");
+      let relatedTableEntry = document.getElementById(rowId);
+      if (relatedTableEntry != null) {
+        let rowCells = relatedTableEntry.childNodes;
+        rowCells.forEach(function (cell) {
+          cell.setAttribute("class", "allSystemsCell");
+        });
+      }
+    };
 
     //Adds the new hex element to container
     newHexGroup.appendChild(newHex);
@@ -1806,6 +1833,8 @@ class TradeRoute {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DOMIdToHexKeyMap: () => (/* binding */ DOMIdToHexKeyMap),
+/* harmony export */   HexKeyToDOMIdMap: () => (/* binding */ HexKeyToDOMIdMap),
 /* harmony export */   allSystemsTable: () => (/* binding */ allSystemsTable),
 /* harmony export */   direction_differences: () => (/* binding */ direction_differences),
 /* harmony export */   generateInfoBox: () => (/* binding */ generateInfoBox),
@@ -1813,10 +1842,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   getSectorData: () => (/* binding */ getSectorData),
 /* harmony export */   getSystem: () => (/* binding */ getSystem),
 /* harmony export */   openTab: () => (/* binding */ openTab),
-/* harmony export */   rollDice: () => (/* binding */ rollDice)
+/* harmony export */   rollDice: () => (/* binding */ rollDice),
+/* harmony export */   scrollParentToChild: () => (/* binding */ scrollParentToChild)
 /* harmony export */ });
 /* harmony import */ var _economyConstants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./economyConstants.js */ "./src/modules/economyConstants.js");
 
+const DOMIdToHexKeyMap = new Map();
+const HexKeyToDOMIdMap = new Map();
 const direction_differences = [
 // even cols 
 [[+1, 0], [+1, -1], [0, -1], [-1, -1], [-1, 0], [0, +1]],
@@ -1875,6 +1907,7 @@ function generateInfoBox(tableData) {
   //Creates table
   let displayTable = document.createElement("table");
   displayTable.setAttribute("class", "info-table");
+  displayTable.setAttribute("id", "all-systems-table");
 
   //Populates rows:
   let labels = [];
@@ -1995,6 +2028,7 @@ function allSystemsTable(systemsList) {
   let displayTable = document.createElement("table");
   document.getElementById("content-container").style.height = `${document.getElementById("svg-container").offsetHeight}px`;
   displayTable.setAttribute("class", "info-table");
+  displayTable.setAttribute("id", "all-systems-table");
   systemsBox.appendChild(displayTable);
   //Creates headings - Maybe there's a better way of doing it?
   let headings = displayTable.insertRow(0);
@@ -2006,15 +2040,79 @@ function allSystemsTable(systemsList) {
   headingUWP.innerHTML = "UWP";
 
   //Creates rows
-  for (let i = 1; i < systemsList.length; i++) {
+  for (let i = 1; i <= systemsList.length; i++) {
+    let listKey = systemsList[i - 1][0];
     let listItem = systemsList[i - 1][1];
     let row = displayTable.insertRow(i);
     let hex = row.insertCell(0);
+    hex.setAttribute("class", "allSystemsCell");
     let name = row.insertCell(1);
+    name.setAttribute("class", "allSystemsCell");
     let uwp = row.insertCell(2);
+    uwp.setAttribute("class", "allSystemsCell");
+    row.setAttribute("id", `Row: ${listKey}`);
+    row.setAttribute("class", "allSystemsRow");
+    let relatedHex;
+    row.onmouseover = event => {
+      let selectedRowHex = event.currentTarget.id;
+      let hexKey = DOMIdToHexKeyMap.get(selectedRowHex);
+      relatedHex = getSystem(hexKey);
+      let rowCells = event.currentTarget.childNodes;
+      rowCells.forEach(function (cell) {
+        cell.setAttribute("class", "allSystemsCellHover");
+      });
+      document.getElementById(`${relatedHex.id}`).setAttribute("class", "hover-hex");
+      //this doesn't leave the original hex as clicked-hex
+    };
+    row.onmouseout = event => {
+      let selectedRowHex = event.currentTarget.id;
+      let hexKey = DOMIdToHexKeyMap.get(selectedRowHex);
+      relatedHex = getSystem(hexKey);
+      let rowCells = event.currentTarget.childNodes;
+      rowCells.forEach(function (cell) {
+        cell.setAttribute("class", "allSystemsCell");
+      });
+      let relatedHexPolygon = document.getElementById(`${relatedHex.id}`);
+      if (relatedHexPolygon.getAttribute("class") != "clicked-hex") {
+        relatedHexPolygon.setAttribute("class", "hex");
+      }
+    };
+    row.onclick = function () {
+      relatedHex.hexOnClick(relatedHex);
+      document.getElementById(`${relatedHex.id}`).setAttribute("class", "clicked-hex");
+    };
     hex.innerHTML = listItem.hex;
     name.innerHTML = listItem.name;
     uwp.innerHTML = listItem.uwp;
+  }
+}
+//Code from https://stackoverflow.com/questions/45408920/plain-javascript-scrollintoview-inside-div
+function scrollParentToChild(parent, child) {
+  // Where is the parent on page
+  var parentRect = parent.getBoundingClientRect();
+  // What can you see?
+  var parentViewableArea = {
+    height: parent.clientHeight,
+    width: parent.clientWidth
+  };
+
+  // Where is the child
+  var childRect = child.getBoundingClientRect();
+  // Is the child viewable?
+  var isViewable = childRect.top >= parentRect.top && childRect.bottom <= parentRect.top + parentViewableArea.height;
+
+  // if you can't see the child try to scroll parent
+  if (!isViewable) {
+    // Should we scroll using top or bottom? Find the smaller ABS adjustment
+    const scrollTop = childRect.top - parentRect.top;
+    const scrollBot = childRect.bottom - parentRect.bottom;
+    if (Math.abs(scrollTop) < Math.abs(scrollBot)) {
+      // we're near the top of the list
+      parent.scrollTop += scrollTop;
+    } else {
+      // we're near the bottom of the list
+      parent.scrollTop += scrollBot;
+    }
   }
 }
 
