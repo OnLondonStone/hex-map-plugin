@@ -35,19 +35,19 @@ class Economy {
   setTradeCapacity(tradeCodes, pop) {
     let tradeMultiplier;
     let tradeCapacity;
-    if (tradeCodes.includes("Ba")) {
+    if (tradeCodes.includes('Ba')) {
       tradeMultiplier = 0;
     }
-    if (tradeCodes.includes("Lo")) {
+    if (tradeCodes.includes('Lo')) {
       tradeMultiplier = 1;
     }
-    if (tradeCodes.includes("Ni")) {
+    if (tradeCodes.includes('Ni')) {
       tradeMultiplier = 2;
     }
-    if (tradeCodes.includes("Ph")) {
+    if (tradeCodes.includes('Ph')) {
       tradeMultiplier = 4;
     }
-    if (tradeCodes.includes("Hi")) {
+    if (tradeCodes.includes('Hi')) {
       tradeMultiplier = 8;
     }
     tradeCapacity = tradeMultiplier * pop;
@@ -163,27 +163,21 @@ class Economy {
     if (tech == 11) {
       tradeRange = 2;
     }
-    ;
     if (tech == 12) {
       tradeRange = 3;
     }
-    ;
     if (tech == 13) {
       tradeRange = 4;
     }
-    ;
     if (tech == 14) {
       tradeRange = 5;
     }
-    ;
     if (tech >= 15) {
       tradeRange = 6;
     }
-    ;
-    if (tradeCodes.includes("Ba")) {
+    if (tradeCodes.includes('Ba')) {
       tradeRange = 0;
     }
-    ;
     return tradeRange;
   }
   findTradePartners(startKey, tradeRange) {
@@ -225,8 +219,8 @@ __webpack_require__.r(__webpack_exports__);
 //In - 7-8, 9-F
 //Ag - 4, 8 - 5-7
 const TRADECODES = {
-  "Template": {
-    codeName: "Name",
+  Template: {
+    codeName: 'Name',
     //Poss replace with supplies and demands
     tradeGoods: {
       supply: [],
@@ -237,62 +231,62 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: ""
+    codeClass: ''
   },
-  "As": {
-    codeName: "Asteroid Belt",
+  As: {
+    codeName: 'Asteroid Belt',
     tradeGoods: {
       supply: [31, 42, 44, 45, 53],
       demand: [15, 21, 22, 25, 32]
     },
     modifier: {
       strength: 2,
-      supplyEffect: ["Mining"],
+      supplyEffect: ['Mining'],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "De": {
-    codeName: "Desert",
+  De: {
+    codeName: 'Desert',
     tradeGoods: {
       supply: [31, 41, 42, 44, 45, 51, 54],
       demand: []
     },
     modifier: {
       strength: 1,
-      supplyEffect: ["Resource", "Mining"],
+      supplyEffect: ['Resource', 'Mining'],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "Fl": {
-    codeName: "Fluid Oceans",
+  Fl: {
+    codeName: 'Fluid Oceans',
     tradeGoods: {
       supply: [41, 44],
       demand: [15]
     },
     modifier: {
       strength: 0.5,
-      supplyEffect: ["Resource"],
+      supplyEffect: ['Resource'],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "Ga": {
-    codeName: "Garden",
+  Ga: {
+    codeName: 'Garden',
     tradeGoods: {
       supply: [33, 34, 51, 55],
       demand: []
     },
     modifier: {
       strength: 2,
-      supplyEffect: ["Resource"],
+      supplyEffect: ['Resource'],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "He": {
-    codeName: "Hell-World",
+  He: {
+    codeName: 'Hell-World',
     tradeGoods: {
       supply: [],
       demand: []
@@ -302,36 +296,36 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "Ic": {
-    codeName: "Ice-Capped",
+  Ic: {
+    codeName: 'Ice-Capped',
     tradeGoods: {
       supply: [31, 41, 44, 53],
       demand: [15, 32]
     },
     modifier: {
       strength: 1,
-      supplyEffect: ["Resource"],
+      supplyEffect: ['Resource'],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "Oc": {
-    codeName: "Ocean World",
+  Oc: {
+    codeName: 'Ocean World',
     tradeGoods: {
       supply: [26, 35, 41, 42, 51, 54],
       demand: []
     },
     modifier: {
       strength: 0.5,
-      supplyEffect: ["Resource"],
+      supplyEffect: ['Resource'],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "Va": {
-    codeName: "Vacuum",
+  Va: {
+    codeName: 'Vacuum',
     tradeGoods: {
       supply: [],
       demand: []
@@ -341,23 +335,23 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "Wa": {
-    codeName: "Water World",
+  Wa: {
+    codeName: 'Water World',
     tradeGoods: {
       supply: [26, 35, 41, 42, 51, 54],
       demand: []
     },
     modifier: {
       strength: 1,
-      supplyEffect: ["Resource"],
+      supplyEffect: ['Resource'],
       demandEffect: []
     },
-    codeClass: "Planetary"
+    codeClass: 'Planetary'
   },
-  "Di": {
-    codeName: "Die-Back",
+  Di: {
+    codeName: 'Die-Back',
     tradeGoods: {
       supply: [],
       demand: []
@@ -367,10 +361,10 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Population"
+    codeClass: 'Population'
   },
-  "Ba": {
-    codeName: "Barren",
+  Ba: {
+    codeName: 'Barren',
     tradeGoods: {
       supply: [],
       demand: []
@@ -380,10 +374,10 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Population"
+    codeClass: 'Population'
   },
-  "Lo": {
-    codeName: "Low Population",
+  Lo: {
+    codeName: 'Low Population',
     tradeGoods: {
       supply: [11, 12, 13, 14, 15, 16, 45],
       demand: [33]
@@ -393,10 +387,10 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Population"
+    codeClass: 'Population'
   },
-  "Ni": {
-    codeName: "Non-Industrial",
+  Ni: {
+    codeName: 'Non-Industrial',
     tradeGoods: {
       supply: [11, 12, 13, 14, 15, 16, 52],
       demand: [11, 12, 16, 21, 22, 43, 53, 56]
@@ -404,12 +398,12 @@ const TRADECODES = {
     modifier: {
       strength: 1,
       supplyEffect: [],
-      demandEffect: ["Consumables", "Industrial"]
+      demandEffect: ['Consumables', 'Industrial']
     },
-    codeClass: "Population"
+    codeClass: 'Population'
   },
-  "Ph": {
-    codeName: "Pre-High Population",
+  Ph: {
+    codeName: 'Pre-High Population',
     tradeGoods: {
       supply: [11, 12, 13, 14, 15, 16, 35, 36, 42],
       demand: [13, 15, 23, 34, 51, 52, 56]
@@ -417,12 +411,12 @@ const TRADECODES = {
     modifier: {
       strength: 0.5,
       supplyEffect: [],
-      demandEffect: ["Consumables", "Industrial"]
+      demandEffect: ['Consumables', 'Industrial']
     },
-    codeClass: "Population"
+    codeClass: 'Population'
   },
-  "Hi": {
-    codeName: "High Population",
+  Hi: {
+    codeName: 'High Population',
     tradeGoods: {
       supply: [11, 12, 13, 14, 15, 16, 35, 36, 42],
       demand: [13, 15, 23, 34, 51, 52, 56]
@@ -430,38 +424,38 @@ const TRADECODES = {
     modifier: {
       strength: 1,
       supplyEffect: [],
-      demandEffect: ["Consumables", "Industrial"]
+      demandEffect: ['Consumables', 'Industrial']
     },
-    codeClass: "Population"
+    codeClass: 'Population'
   },
-  "Pa": {
-    codeName: "Pre-Agricultural",
+  Pa: {
+    codeName: 'Pre-Agricultural',
     tradeGoods: {
       supply: [26, 33, 34, 52, 54, 55],
       demand: [12, 41, 46]
     },
     modifier: {
       strength: 0.5,
-      supplyEffect: ["Organic"],
-      demandEffect: ["Industrial"]
+      supplyEffect: ['Organic'],
+      demandEffect: ['Industrial']
     },
-    codeClass: "Output"
+    codeClass: 'Output'
   },
-  "Ag": {
-    codeName: "Agricultural",
+  Ag: {
+    codeName: 'Agricultural',
     tradeGoods: {
       supply: [26, 33, 34, 52, 54, 55],
       demand: [12, 41, 46]
     },
     modifier: {
       strength: 1,
-      supplyEffect: ["Organic"],
-      demandEffect: ["Industrial"]
+      supplyEffect: ['Organic'],
+      demandEffect: ['Industrial']
     },
-    codeClass: "Output"
+    codeClass: 'Output'
   },
-  "Na": {
-    codeName: "Non-Agricultural",
+  Na: {
+    codeName: 'Non-Agricultural',
     tradeGoods: {
       supply: [],
       demand: [52]
@@ -469,38 +463,38 @@ const TRADECODES = {
     modifier: {
       strength: 1,
       supplyEffect: [],
-      demandEffect: ["Consumables"]
+      demandEffect: ['Consumables']
     },
-    codeClass: "Economic"
+    codeClass: 'Economic'
   },
-  "Pi": {
-    codeName: "Pre-Industrial",
+  Pi: {
+    codeName: 'Pre-Industrial',
     tradeGoods: {
       supply: [21, 22, 23, 24, 25, 43, 46, 56],
       demand: [14, 16, 26, 31, 36, 44, 45, 53, 54]
     },
     modifier: {
       strength: 0.5,
-      supplyEffect: ["Industrial"],
-      demandEffect: ["Resource", "Mining"]
+      supplyEffect: ['Industrial'],
+      demandEffect: ['Resource', 'Mining']
     },
-    codeClass: "Output"
+    codeClass: 'Output'
   },
-  "In": {
-    codeName: "Industrial",
+  In: {
+    codeName: 'Industrial',
     tradeGoods: {
       supply: [21, 22, 23, 24, 25, 43, 46, 56],
       demand: [14, 16, 26, 31, 36, 44, 45, 53, 54]
     },
     modifier: {
       strength: 1,
-      supplyEffect: ["Industrial"],
-      demandEffect: ["Resource", "Mining"]
+      supplyEffect: ['Industrial'],
+      demandEffect: ['Resource', 'Mining']
     },
-    codeClass: "Output"
+    codeClass: 'Output'
   },
-  "Po": {
-    codeName: "Poor",
+  Po: {
+    codeName: 'Poor',
     tradeGoods: {
       supply: [11],
       demand: [11, 14, 24, 36, 51]
@@ -510,10 +504,10 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Economic"
+    codeClass: 'Economic'
   },
-  "Pr": {
-    codeName: "Pre-Rich",
+  Pr: {
+    codeName: 'Pre-Rich',
     tradeGoods: {
       supply: [],
       demand: [21, 23, 25, 31, 32, 35, 36, 42, 43, 44, 51, 55]
@@ -523,10 +517,10 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Economic"
+    codeClass: 'Economic'
   },
-  "Ri": {
-    codeName: "Rich",
+  Ri: {
+    codeName: 'Rich',
     tradeGoods: {
       supply: [],
       demand: [21, 23, 25, 31, 32, 35, 36, 42, 43, 44, 51, 55]
@@ -536,165 +530,165 @@ const TRADECODES = {
       supplyEffect: [],
       demandEffect: []
     },
-    codeClass: "Economic"
+    codeClass: 'Economic'
   }
 };
 //Supply Output = Pop * *(0.5 if poor, 2 if Rich, 1.5 if Pre-Rich)
-//Demand = 
+//Demand =
 // Classes = Basic/Advanced Industrial, Basic/Advanced Resource, Basic/Advanced Organic, Luxury, Basic/Advanced Comsumables
 
 const TRADEGOODS = [{
   id: 11,
-  goodsName: "Basic Electronics",
-  goodsClass: "Industrial",
+  goodsName: 'Basic Electronics',
+  goodsClass: 'Industrial',
   basePrice: 10
 }, {
   id: 12,
-  goodsName: "Basic Machine Parts",
-  goodsClass: "Industrial",
+  goodsName: 'Basic Machine Parts',
+  goodsClass: 'Industrial',
   basePrice: 10
 }, {
   id: 13,
-  goodsName: "Basic Manufactured Goods",
-  goodsClass: "Industrial",
+  goodsName: 'Basic Manufactured Goods',
+  goodsClass: 'Industrial',
   basePrice: 10
 }, {
   id: 14,
-  goodsName: "Basic Raw Materials",
-  goodsClass: "Resource",
+  goodsName: 'Basic Raw Materials',
+  goodsClass: 'Resource',
   basePrice: 5
 }, {
   id: 15,
-  goodsName: "Basic Consumables",
-  goodsClass: "Comsumables",
+  goodsName: 'Basic Consumables',
+  goodsClass: 'Comsumables',
   basePrice: 2
 }, {
   id: 16,
-  goodsName: "Basic Ore",
-  goodsClass: "Mining",
+  goodsName: 'Basic Ore',
+  goodsClass: 'Mining',
   basePrice: 1
 }, {
   id: 21,
-  goodsName: "Advanced Electronics",
-  goodsClass: "Industrial",
+  goodsName: 'Advanced Electronics',
+  goodsClass: 'Industrial',
   basePrice: 100
 }, {
   id: 22,
-  goodsName: "Advanced Machine Parts",
-  goodsClass: "Industrial",
+  goodsName: 'Advanced Machine Parts',
+  goodsClass: 'Industrial',
   basePrice: 75
 }, {
   id: 23,
-  goodsName: "Advanced Manufactured Goods",
-  goodsClass: "Industrial",
+  goodsName: 'Advanced Manufactured Goods',
+  goodsClass: 'Industrial',
   basePrice: 100
 }, {
   id: 24,
-  goodsName: "Advanced Weapons",
-  goodsClass: "Industrial",
+  goodsName: 'Advanced Weapons',
+  goodsClass: 'Industrial',
   basePrice: 150
 }, {
   id: 25,
-  goodsName: "Advanced Vehicles",
-  goodsClass: "Industrial",
+  goodsName: 'Advanced Vehicles',
+  goodsClass: 'Industrial',
   basePrice: 180
 }, {
   id: 26,
-  goodsName: "Biochemicals",
-  goodsClass: "Resource",
+  goodsName: 'Biochemicals',
+  goodsClass: 'Resource',
   basePrice: 50
 }, {
   id: 31,
-  goodsName: "Crystals and Gems",
-  goodsClass: "Mining",
+  goodsName: 'Crystals and Gems',
+  goodsClass: 'Mining',
   basePrice: 20
 }, {
   id: 32,
-  goodsName: "Cybernetics",
-  goodsClass: "Industial",
+  goodsName: 'Cybernetics',
+  goodsClass: 'Industial',
   basePrice: 250
 }, {
   id: 33,
-  goodsName: "Live Animals",
-  goodsClass: "Resource",
+  goodsName: 'Live Animals',
+  goodsClass: 'Resource',
   basePrice: 10
 }, {
   id: 34,
-  goodsName: "Luxury Consumables",
-  goodsClass: "Consumables",
+  goodsName: 'Luxury Consumables',
+  goodsClass: 'Consumables',
   basePrice: 20
 }, {
   id: 35,
-  goodsName: "Luxury Goods",
-  goodsClass: "Industrial",
+  goodsName: 'Luxury Goods',
+  goodsClass: 'Industrial',
   basePrice: 200
 }, {
   id: 36,
-  goodsName: "Medical Supplies",
-  goodsClass: "Industrial",
+  goodsName: 'Medical Supplies',
+  goodsClass: 'Industrial',
   basePrice: 50
 }, {
   id: 41,
-  goodsName: "Petrochemicals",
-  goodsClass: "Resource",
+  goodsName: 'Petrochemicals',
+  goodsClass: 'Resource',
   basePrice: 10
 }, {
   id: 42,
-  goodsName: "Pharmaceuticals",
-  goodsClass: "Industrial",
+  goodsName: 'Pharmaceuticals',
+  goodsClass: 'Industrial',
   basePrice: 100
 }, {
   id: 43,
-  goodsName: "Polymers",
-  goodsClass: "Resource",
+  goodsName: 'Polymers',
+  goodsClass: 'Resource',
   basePrice: 7
 }, {
   id: 44,
-  goodsName: "Precious Metals",
-  goodsClass: "Resource",
+  goodsName: 'Precious Metals',
+  goodsClass: 'Resource',
   basePrice: 50
 }, {
   id: 45,
-  goodsName: "Radioactives",
-  goodsClass: "Resource",
+  goodsName: 'Radioactives',
+  goodsClass: 'Resource',
   basePrice: 1000
 }, {
   id: 46,
-  goodsName: "Robots",
-  goodsClass: "Industrial",
+  goodsName: 'Robots',
+  goodsClass: 'Industrial',
   basePrice: 400
 }, {
   id: 51,
-  goodsName: "Spices",
-  goodsClass: "Comsumables",
+  goodsName: 'Spices',
+  goodsClass: 'Comsumables',
   basePrice: 6
 }, {
   id: 52,
-  goodsName: "Textiles",
-  goodsClass: "Industrial",
+  goodsName: 'Textiles',
+  goodsClass: 'Industrial',
   basePrice: 3
 }, {
   id: 53,
-  goodsName: "Uncommon Ore",
-  goodsClass: "Mining",
+  goodsName: 'Uncommon Ore',
+  goodsClass: 'Mining',
   basePrice: 5
 }, {
   id: 54,
-  goodsName: "Uncommon Raw Materials",
-  goodsClass: "Resource",
+  goodsName: 'Uncommon Raw Materials',
+  goodsClass: 'Resource',
   basePrice: 20
 }, {
   id: 55,
-  goodsName: "Wood",
-  goodsClass: "Resource",
+  goodsName: 'Wood',
+  goodsClass: 'Resource',
   basePrice: 1
 }, {
   id: 56,
-  goodsName: "Vehicles",
-  goodsClass: "Industrial",
+  goodsName: 'Vehicles',
+  goodsClass: 'Industrial',
   basePrice: 15
 }];
-//Currently not being used - fold into 
+//Currently not being used - fold into
 const BASICTRADEGOODS = [11, 12, 13, 14, 15, 16];
 
 /***/ }),
@@ -726,28 +720,28 @@ class Sector {
     this.SectorMap = this.makeSectorMap(this.col, this.row, this.scale, this.systemList);
   }
 
-  //Creates 
+  //Creates
   makeSectorMap(col, row, scale, systemList) {
     const SectorMap = new Map();
-    let hexContainer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    hexContainer.setAttribute("id", "hex-container");
-    hexContainer.id = "hex-container";
-    document.getElementById("svg-container").appendChild(hexContainer);
+    let hexContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    hexContainer.setAttribute('id', 'hex-container');
+    hexContainer.id = 'hex-container';
+    document.getElementById('svg-container').appendChild(hexContainer);
     //Fix width;
     let margin = 3;
     let r = scale;
     let svgHeight = (row + 0.5) * (Math.sqrt(3) * r) + margin * 2;
     let svgWidth = (col + 0.5) * (3 / 2 * r) + margin * 2;
-    document.getElementById("hex-container").setAttribute("height", `${Math.floor(svgHeight)}`);
-    document.getElementById("hex-container").setAttribute("width", `${Math.floor(svgWidth)}`);
+    document.getElementById('hex-container').setAttribute('height', `${Math.floor(svgHeight)}`);
+    document.getElementById('hex-container').setAttribute('width', `${Math.floor(svgWidth)}`);
 
     //Switching order of hex and trade group makes each clickable - implement toggle?
 
-    let hexGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    hexGroup.setAttribute("id", "hex-group");
+    let hexGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    hexGroup.setAttribute('id', 'hex-group');
     hexContainer.appendChild(hexGroup);
-    let tradeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    tradeGroup.setAttribute("id", "trade-group");
+    let tradeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    tradeGroup.setAttribute('id', 'trade-group');
     hexContainer.appendChild(tradeGroup);
     for (let c = 0; c < col; c++) {
       let colNum = c + 1;
@@ -799,52 +793,52 @@ class Hex {
       y += Math.sqrt(3) / 2 * hexSize;
     }
     return {
-      "x": x,
-      "y": y
+      x: x,
+      y: y
     };
   }
   //Creates hex element
   createHex(id, centerpoint, hexSize, hexKey) {
-    let newHex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    let newHexGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    newHex.setAttribute("points", this.hexPoints(centerpoint, hexSize));
-    newHex.setAttribute("id", `${id}`);
-    newHexGroup.setAttribute("class", "hex");
+    let newHex = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    let newHexGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    newHex.setAttribute('points', this.hexPoints(centerpoint, hexSize));
+    newHex.setAttribute('id', `${id}`);
+    newHexGroup.setAttribute('class', 'hex');
 
     //Adds onclick event
-    newHexGroup.setAttribute("class", "hex-group");
-    newHexGroup.addEventListener("click", () => {
+    newHexGroup.setAttribute('class', 'hex-group');
+    newHexGroup.addEventListener('click', () => {
       this.hexOnClick(this);
     });
 
     //Adds hover
     newHexGroup.onmouseover = function () {
       let rowId = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.HexKeyToDOMIdMap.get(hexKey);
-      let container = document.getElementById("content-container");
+      let container = document.getElementById('content-container');
       let relatedTableEntry = document.getElementById(rowId);
       if (relatedTableEntry != null) {
         (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.scrollParentToChild)(container, relatedTableEntry);
         let rowCells = relatedTableEntry.childNodes;
         rowCells.forEach(function (cell) {
-          cell.setAttribute("class", "allSystemsCellHover");
+          cell.setAttribute('class', 'allSystemsCellHover');
         });
       }
     };
     newHexGroup.onmouseout = function () {
       let rowId = _utilities_js__WEBPACK_IMPORTED_MODULE_0__.HexKeyToDOMIdMap.get(hexKey);
-      let table = document.getElementById("all-systems-table");
+      let table = document.getElementById('all-systems-table');
       let relatedTableEntry = document.getElementById(rowId);
       if (relatedTableEntry != null) {
         let rowCells = relatedTableEntry.childNodes;
         rowCells.forEach(function (cell) {
-          cell.setAttribute("class", "allSystemsCell");
+          cell.setAttribute('class', 'allSystemsCell');
         });
       }
     };
 
     //Adds the new hex element to container
     newHexGroup.appendChild(newHex);
-    document.getElementById("hex-group").appendChild(newHexGroup);
+    document.getElementById('hex-group').appendChild(newHexGroup);
     if (this.system) {
       this.setMarker(centerpoint, newHexGroup);
     }
@@ -856,44 +850,40 @@ class Hex {
     } else {
       return null;
     }
-    ;
   }
   hexOnClick(hex) {
-    let info = document.getElementById("system-information-content");
-    let trade = document.getElementById("system-trade-content");
-    let currentTab = document.getElementsByClassName("tab-links active");
+    let info = document.getElementById('system-information-content');
+    let trade = document.getElementById('system-trade-content');
+    let currentTab = document.getElementsByClassName('tab-links active');
     let currentTabID = currentTab[0].id;
     //Bad - case switch?
-    if (currentTabID === "all-systems") {
+    if (currentTabID === 'all-systems') {
       currentTab = {
         target: {
-          id: "system-information"
+          id: 'system-information'
         }
       };
     }
-    ;
-    if (currentTabID === "system-information") {
+    if (currentTabID === 'system-information') {
       currentTab = {
         target: {
-          id: "system-information"
+          id: 'system-information'
         }
       };
     }
-    ;
-    if (currentTabID === "system-trade") {
+    if (currentTabID === 'system-trade') {
       currentTab = {
         target: {
-          id: "system-trade"
+          id: 'system-trade'
         }
       };
     }
-    ;
     if (hex.system) {
       if (info.hasChildNodes()) {
-        info.innerHTML = "";
+        info.innerHTML = '';
       }
       if (trade.hasChildNodes()) {
-        trade.innerHTML = "";
+        trade.innerHTML = '';
       }
       (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.generateInfoBox)(hex.system.tableData);
       if (hex.system.economicData) {
@@ -901,8 +891,8 @@ class Hex {
       }
       (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.openTab)(currentTab, hex);
     }
-    document.querySelectorAll(".clicked-hex").forEach(hex => hex.setAttribute("class", "hex"));
-    document.getElementById(hex.id).setAttribute("class", "clicked-hex");
+    document.querySelectorAll('.clicked-hex').forEach(hex => hex.setAttribute('class', 'hex'));
+    document.getElementById(hex.id).setAttribute('class', 'clicked-hex');
   }
   //Gets from hexCenter(), creates points for hex polygon
   hexPoints(centerpoint, hexSize) {
@@ -929,11 +919,11 @@ class Hex {
     //Useful code for creating a dot at the middle of a hex.
     let cx = centerpoint.x;
     let cy = centerpoint.y;
-    let mark = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    mark.setAttribute("cx", cx);
-    mark.setAttribute("cy", cy);
-    mark.setAttribute("r", 10);
-    mark.setAttribute("id", "marker");
+    let mark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    mark.setAttribute('cx', cx);
+    mark.setAttribute('cy', cy);
+    mark.setAttribute('r', 10);
+    mark.setAttribute('id', 'marker');
     newHex.appendChild(mark);
   }
   setMoveCost(system) {
@@ -941,7 +931,6 @@ class Hex {
     if (!system) {
       cost = 3;
     }
-    ;
     return cost;
   }
   setEdges(col, row, hexKey, SectorMap, colMax, rowMax) {
@@ -1004,54 +993,55 @@ function generateMap(e) {
   if (!scale) {
     scale = 40;
   }
-  if (document.querySelectorAll("#hex-container").length === 0) {
+  if (document.querySelectorAll('#hex-container').length === 0) {
     dataContainer = new _makemap_js__WEBPACK_IMPORTED_MODULE_0__.Sector(col, row, scale);
   }
   //Creates Tab Display
-  document.getElementById("tab-display").style.display = "block";
-  let tab = document.getElementsByClassName("tab-links");
+  document.getElementById('tab-display').style.display = 'block';
+  let tab = document.getElementsByClassName('tab-links');
   for (let t = 0; t < tab.length; t++) {
-    tab[t].style.display = "block";
+    tab[t].style.display = 'block';
     tab[t].addEventListener('click', _utilities_js__WEBPACK_IMPORTED_MODULE_1__.openTab);
   }
-  let tabLinks = document.getElementsByClassName("tab-links");
+  let tabLinks = document.getElementsByClassName('tab-links');
   for (let i = 0; i < tabLinks.length; i++) {
-    tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+    tabLinks[i].className = tabLinks[i].className.replace(' active', '');
   }
-  document.getElementById("all-systems").className += " active";
+  document.getElementById('all-systems').className += ' active';
   (0,_utilities_js__WEBPACK_IMPORTED_MODULE_1__.allSystemsTable)(dataContainer.systemList);
-  document.getElementById("content-container").style.height = `${document.getElementById("svg-container").offsetHeight}px`;
-  document.getElementById("run-button").style.display = "block";
-  document.getElementById("reset-button").style.display = "block";
+  document.getElementById('content-container').style.height = `${document.getElementById('svg-container').offsetHeight}px`;
+  document.getElementById('run-button').style.display = 'block';
+  document.getElementById('reset-button').style.display = 'block';
 
   //Hides Map Generator div
-  document.getElementById("map-generator").style.display = "none";
-  document.getElementById("hex-container").sectorDataContainer = dataContainer;
+  document.getElementById('map-generator').style.display = 'none';
+  document.getElementById('hex-container').sectorDataContainer = dataContainer;
 }
 
 //Resets map
+//Rewrite this
 function resetMap() {
   //fix CSS on generator section
-  document.getElementById("map-generator").style.display = "inline-flex";
-  document.getElementById("run-button").style.display = "none";
-  document.getElementById("reset-button").style.display = "none";
-  if (document.getElementById("system-information-content") !== null) {
-    let systemContent = document.getElementById("system-information-content");
+  document.getElementById('map-generator').style.display = 'inline-flex';
+  document.getElementById('run-button').style.display = 'none';
+  document.getElementById('reset-button').style.display = 'none';
+  if (document.getElementById('system-information-content') !== null) {
+    let systemContent = document.getElementById('system-information-content');
     let oldSystem = systemContent.firstElementChild;
-    let allContent = document.getElementById("all-systems-content");
+    let allContent = document.getElementById('all-systems-content');
     let oldAll = allContent.firstElementChild;
     if (oldSystem !== null) systemContent.removeChild(oldSystem);
     if (oldAll !== null) allContent.removeChild(oldAll);
   }
-  if (document.querySelectorAll("#hex-container").length > 0) {
-    let mapContainer = document.getElementById("svg-container");
-    let map = document.getElementById("hex-container");
+  if (document.querySelectorAll('#hex-container').length > 0) {
+    let mapContainer = document.getElementById('svg-container');
+    let map = document.getElementById('hex-container');
     mapContainer.removeChild(map);
   }
-  document.getElementById("tab-display").style.display = "none";
-  let tabLinks = document.getElementsByClassName("tab-links");
+  document.getElementById('tab-display').style.display = 'none';
+  let tabLinks = document.getElementsByClassName('tab-links');
   for (let t = 0; t < tabLinks.length; t++) {
-    tabLinks[t].style.display = "none";
+    tabLinks[t].style.display = 'none';
   }
 }
 
@@ -1121,7 +1111,7 @@ class PriorityQueue {
 
   // Removing an element will remove the
   // top element with highest priority then
-  // heapifyDown will be called 
+  // heapifyDown will be called
   get() {
     if (this.heap.length === 0) {
       return null;
@@ -1258,7 +1248,7 @@ function runTradeSimulation() {
   const activeHexes = [];
   sector.SectorMap.forEach(checkActiveHex, activeHexes);
   let maxValue = 0;
-  console.log("Beep");
+  console.log('Beep');
   activeHexes.forEach(hexKey => {
     origin = sector.SectorMap.get(hexKey);
     let range = origin.system.economicData.tradeRange;
@@ -1273,7 +1263,6 @@ function runTradeSimulation() {
       if (route.tradeRouteVolume > maxValue) {
         maxValue = route.tradeRouteVolume;
       }
-      ;
     });
   });
   activeHexes.forEach(hexKey => {
@@ -1283,7 +1272,6 @@ function runTradeSimulation() {
       if (route.routeHexesArray.length > 0) {
         route.drawConnectingLine(maxValue, route.routeHexesArray);
       }
-      ;
     });
   });
   activeHexes.forEach(hexKey => {
@@ -1296,7 +1284,7 @@ function checkActiveHex(value, key) {
   }
 }
 function makeTrades(originKey) {
-  const originHex = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.getSectorData)(originKey);
+  const originHex = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.getSystem)(originKey);
   const originSupply = originHex.system.economicData.tradeInfo.supply;
   const originDemands = originHex.system.economicData.tradeInfo.demands;
   const tradeRoutes = originHex.system.economicData.tradeRoutes;
@@ -1307,7 +1295,7 @@ function makeTrades(originKey) {
   originSupply.forEach(good => {
     tradeRoutes.forEach(route => {
       let endKey = route.endKey;
-      let endHex = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.getSectorData)(endKey);
+      let endHex = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.getSystem)(endKey);
       let endDemands = endHex.system.economicData.tradeInfo.demands;
       endDemands.forEach(demand => {
         if (demand.id == good.id) {
@@ -1317,7 +1305,7 @@ function makeTrades(originKey) {
     }, good);
     let highestPriceEntry = Math.max(...availableSalePrices[1].price);
     let demandHex = availableSalePrices.findIndex(price => price[1] == highestPriceEntry.price);
-    let sellAmount = route.setAmount(good, highestPriceEntry.price, "sell");
+    let sellAmount = route.setAmount(good, highestPriceEntry.price, 'sell');
     highestSalePrice.set(demandHex, {
       good: good.id,
       price: highestPriceEntry.price,
@@ -1338,7 +1326,7 @@ function makeTrades(originKey) {
     }, good);
     let lowestPriceEntry = Math.min(...availablePurchasePrices[1].price);
     let supplyHex = availablePurchasePrices.findIndex(price => price[1] == lowestPriceEntry.price);
-    let buyAmount = route.setAmount(good, lowestPriceEntry.price, "buy");
+    let buyAmount = route.setAmount(good, lowestPriceEntry.price, 'buy');
     lowestPurchasePrice.set(supplyHex, {
       good: good.id,
       price: lowestPriceEntry.price,
@@ -1421,7 +1409,6 @@ class System {
       govRoll = 0;
       lawRoll = 0;
     }
-    ;
     systemRolls.set('lawLevel', lawRoll);
 
     //Starport:
@@ -1506,20 +1493,20 @@ class System {
     this.systemData.tradeCodes.forEach(code => {
       tradeCodeLongArray.push(_economyConstants_js__WEBPACK_IMPORTED_MODULE_1__.TRADECODES[code].codeName);
     });
-    formattedTradeCodes = tradeCodeLongArray.join(", ");
+    formattedTradeCodes = tradeCodeLongArray.join(', ');
     return {
-      "UWP": `${this.uwp}`,
-      "Name": this.systemData.systemName,
-      "Size": `${this.systemData.size.size} km`,
-      "Gravity": `${this.systemData.size.gravity} Earth Normal`,
-      "Atmosphere": `${this.systemData.atmosphere.atmo} at ${this.systemData.atmosphere.psi} psi.`,
-      "Hydropgraphics": formatedHydroPercent,
-      "Population": formattedPop,
-      "Government": this.systemData.government.governmentType,
-      "Law Level": this.systemData.lawLevel.lawLevel,
-      "Starport Grade": this.systemData.starport,
-      "Tech Level": this.systemData.techLevel.tl,
-      "Trade Code": formattedTradeCodes
+      UWP: `${this.uwp}`,
+      Name: this.systemData.systemName,
+      Size: `${this.systemData.size.size} km`,
+      Gravity: `${this.systemData.size.gravity} Earth Normal`,
+      Atmosphere: `${this.systemData.atmosphere.atmo} at ${this.systemData.atmosphere.psi} psi.`,
+      Hydropgraphics: formatedHydroPercent,
+      Population: formattedPop,
+      Government: this.systemData.government.governmentType,
+      'Law Level': this.systemData.lawLevel.lawLevel,
+      'Starport Grade': this.systemData.starport,
+      'Tech Level': this.systemData.techLevel.tl,
+      'Trade Code': formattedTradeCodes
     };
   }
   //  Name
@@ -1592,11 +1579,9 @@ class System {
     if (law > 9) {
       law = 9;
     }
-    ;
     if (law < 0) {
       law = 0;
     }
-    ;
     return {
       lawLevel: law
     };
@@ -1605,16 +1590,16 @@ class System {
   setStarport(stClass) {
     let starport;
     if (stClass > 10) {
-      starport = "A";
+      starport = 'A';
     } else if (stClass === 10 || stClass === 9) {
-      starport = "B";
+      starport = 'B';
     } else if (stClass === 8 || stClass === 7) {
-      starport = "C";
+      starport = 'C';
     } else if (stClass === 6 || stClass === 5) {
-      starport = "D";
+      starport = 'D';
     } else if (stClass === 4 || stClass === 3) {
-      starport = "E";
-    } else starport = "X";
+      starport = 'E';
+    } else starport = 'X';
     return starport;
   }
   //  Tech Level
@@ -1699,17 +1684,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const SYSTEM = {
   SIZE: [800, 1600, 3200, 4800, 6400, 8000, 9600, 11200, 12800, 14400, 16000],
-  GRAVITY: ["Negligible", 0.05, 0.15, 0.25, 0.35, 0.45, 0.7, 0.9, 1.0, 1.25, 1.4],
-  ATMO: ["None", "Trace", "Very Thin, Tainted", "Very Thin", "Thin, Tainted", "Thin", "Standard", "Standard, Tainted", "Dense", "Dense, Tainted", "Exotic", "Corrosive", "Insidious", "Dense, High", "Thin, Low", "Unusual"],
+  GRAVITY: ['Negligible', 0.05, 0.15, 0.25, 0.35, 0.45, 0.7, 0.9, 1.0, 1.25, 1.4],
+  ATMO: ['None', 'Trace', 'Very Thin, Tainted', 'Very Thin', 'Thin, Tainted', 'Thin', 'Standard', 'Standard, Tainted', 'Dense', 'Dense, Tainted', 'Exotic', 'Corrosive', 'Insidious', 'Dense, High', 'Thin, Low', 'Unusual'],
   PSIMIN: [0, 0.001, 0.1, 0.1, 0.43, 0.43, 0.71, 0.71, 1.5, 1.5, 0.43, 0.43, 0.43, 1.5, 0.1, 0],
   PSIMAX: [0, 0.09, 0.42, 0.42, 0.7, 0.7, 1.49, 1.49, 2.49, 2.49, 2.49, 2.49, 2.49, 5, 0.5, 5],
   HYDROMIN: [0, 6, 16, 26, 36, 46, 56, 66, 76, 86, 96],
   HYDROMAX: [5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 100],
-  HYDRO: ["Desert World", "Dry World", "A few small seas", "Small seas and oceans", "Wet World", "Large oceans", "", "Terran Standard", "Water world", "Only a few small islands and archipelagos", "Almost entirely water", "None"],
-  GOV: ["None", "Company/Corporation", "Participating Democracy", "Self-Perpetuating Oligarchy", "Representative Democracy", "Feudal Technocracy", "Captive Government", "Balkanisation", "Civil Service Bureaucracy", "Impersonal Bureaucracy", "Charismatic Dictator", "Non-Charistmatic Dictator", "Charismatic Oligarchy", "Religious Dictatorship"]
+  HYDRO: ['Desert World', 'Dry World', 'A few small seas', 'Small seas and oceans', 'Wet World', 'Large oceans', '', 'Terran Standard', 'Water world', 'Only a few small islands and archipelagos', 'Almost entirely water', 'None'],
+  GOV: ['None', 'Company/Corporation', 'Participating Democracy', 'Self-Perpetuating Oligarchy', 'Representative Democracy', 'Feudal Technocracy', 'Captive Government', 'Balkanisation', 'Civil Service Bureaucracy', 'Impersonal Bureaucracy', 'Charismatic Dictator', 'Non-Charistmatic Dictator', 'Charismatic Oligarchy', 'Religious Dictatorship']
 };
 const TRADECODEREQS = [{
-  code: "As",
+  code: 'As',
   siz: [0],
   atm: [0],
   hyd: [0],
@@ -1717,7 +1702,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "De",
+  code: 'De',
   siz: [],
   atm: [2, 3, 4, 5, 6, 7, 8, 9],
   hyd: [0],
@@ -1725,7 +1710,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Fl",
+  code: 'Fl',
   siz: [],
   atm: [10, 11, 12],
   hyd: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -1733,7 +1718,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Ga",
+  code: 'Ga',
   siz: [6, 7, 8],
   atm: [5, 6, 8],
   hyd: [5, 6, 7],
@@ -1743,7 +1728,7 @@ const TRADECODEREQS = [{
 },
 //Hellworld seems disconnected from other tags, remove?
 {
-  code: "He",
+  code: 'He',
   siz: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   atm: [2, 3, 7, 8, 10, 11, 12],
   hyd: [0, 1, 2],
@@ -1751,7 +1736,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Ic",
+  code: 'Ic',
   siz: [],
   atm: [0, 1],
   hyd: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -1759,7 +1744,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Oc",
+  code: 'Oc',
   siz: [10, 11, 12],
   atm: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   hyd: [10],
@@ -1767,7 +1752,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Va",
+  code: 'Va',
   siz: [],
   atm: [0],
   hyd: [],
@@ -1775,7 +1760,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Wa",
+  code: 'Wa',
   siz: [3, 4, 5, 6, 7, 8, 9, 10],
   atm: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   hyd: [10],
@@ -1783,7 +1768,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Ba",
+  code: 'Ba',
   siz: [],
   atm: [],
   hyd: [],
@@ -1791,7 +1776,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Lo",
+  code: 'Lo',
   siz: [],
   atm: [],
   hyd: [],
@@ -1799,7 +1784,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Ni",
+  code: 'Ni',
   siz: [],
   atm: [],
   hyd: [],
@@ -1807,7 +1792,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Ph",
+  code: 'Ph',
   siz: [],
   atm: [],
   hyd: [],
@@ -1815,7 +1800,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Hi",
+  code: 'Hi',
   siz: [],
   atm: [],
   hyd: [],
@@ -1823,7 +1808,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Pa",
+  code: 'Pa',
   siz: [],
   atm: [4, 5, 6, 7, 8, 9],
   hyd: [4, 5, 6, 7, 8],
@@ -1831,7 +1816,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Ag",
+  code: 'Ag',
   siz: [],
   atm: [4, 5, 6, 7, 8, 9],
   hyd: [4, 5, 6, 7, 8],
@@ -1839,7 +1824,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Na",
+  code: 'Na',
   siz: [],
   atm: [0, 1, 2, 3],
   hyd: [],
@@ -1847,7 +1832,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Pi",
+  code: 'Pi',
   siz: [],
   atm: [0, 1, 2, 4, 7, 9],
   hyd: [],
@@ -1855,7 +1840,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "In",
+  code: 'In',
   siz: [],
   atm: [0, 1, 2, 3, 7, 9, 10, 11, 12],
   hyd: [],
@@ -1863,7 +1848,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Po",
+  code: 'Po',
   siz: [],
   atm: [2, 3, 4, 5],
   hyd: [0, 1, 2, 3],
@@ -1871,7 +1856,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Pr",
+  code: 'Pr',
   siz: [],
   atm: [6, 8],
   hyd: [],
@@ -1879,7 +1864,7 @@ const TRADECODEREQS = [{
   gov: [],
   law: []
 }, {
-  code: "Ri",
+  code: 'Ri',
   siz: [],
   atm: [6, 8],
   hyd: [],
@@ -1979,12 +1964,12 @@ class TradeRoute {
   drawConnectingLine(maxValue, pathArray) {
     const width = this.calculateTradeRouteWidth(this.tradeRouteVolume, maxValue);
     const routeKey = this.routeKey;
-    const tradeGroup = document.getElementById("trade-group");
+    const tradeGroup = document.getElementById('trade-group');
     const sectorData = (0,_utilities_js__WEBPACK_IMPORTED_MODULE_0__.getSectorData)();
     if (pathArray.length == 0) {
       return;
     }
-    let newPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    let newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     let pathStart = sectorData.SectorMap.get(pathArray[0]);
     let pathString = `M${pathStart.centerPoint.x} ${pathStart.centerPoint.y} `;
     for (let i = 1; i < pathArray.length; i++) {
@@ -1994,11 +1979,11 @@ class TradeRoute {
       let y = stepCoords.y;
       pathString += `L${x} ${y} `;
     }
-    newPath.setAttribute("d", pathString);
-    newPath.setAttribute("class", "tradeLine");
-    newPath.setAttribute("id", routeKey);
-    newPath.setAttribute("style", `fill:none; stroke:red; stroke-width: ${width}`);
-    newPath.addEventListener("click", this.tradeRouteOnClick);
+    newPath.setAttribute('d', pathString);
+    newPath.setAttribute('class', 'tradeLine');
+    newPath.setAttribute('id', routeKey);
+    newPath.setAttribute('style', `fill:none; stroke:red; stroke-width: ${width}`);
+    newPath.addEventListener('click', this.tradeRouteOnClick);
     tradeGroup.appendChild(newPath);
   }
   calculateTradeRouteWidth(routeValue, maxValue) {
@@ -2011,11 +1996,10 @@ class TradeRoute {
     if (width < 4) {
       width = 4;
     }
-    ;
     return width;
   }
   tradeRouteOnClick() {
-    const SectorTradeRoutes = document.getElementById("hex-container").sectorDataContainer.SectorMap;
+    const SectorTradeRoutes = document.getElementById('hex-container').sectorDataContainer.SectorMap;
     console.log(this.id);
     let clickedRoute = SectorTradeRoutes.get(this.id);
     console.log(clickedRoute);
@@ -2025,11 +2009,11 @@ class TradeRoute {
     this.endTradeInfo = this.endSystem.system.economicData.tradeInfo;
     let max = this.routeTradeCapacity;
     let amountArray = [];
-    if (type == "sell") {
+    if (type == 'sell') {
       //supply -> demand
       amountArray = [originGood.supplyAmount, partnerGood.demandAmount, max];
     }
-    if (type == "buy") {
+    if (type == 'buy') {
       //demand -> supply
       amountArray = [originGood.demandAmount, partnerGood.supplyAmount, max];
     }
@@ -2065,12 +2049,12 @@ __webpack_require__.r(__webpack_exports__);
 const DOMIdToHexKeyMap = new Map();
 const HexKeyToDOMIdMap = new Map();
 const direction_differences = [
-// even cols 
+// even cols
 [[+1, 0], [+1, -1], [0, -1], [-1, -1], [-1, 0], [0, +1]],
-// odd cols 
+// odd cols
 [[+1, +1], [+1, 0], [0, -1], [-1, 0], [-1, +1], [0, +1]]];
 function getSectorData() {
-  const sectorData = document.getElementById("hex-container").sectorDataContainer;
+  const sectorData = document.getElementById('hex-container').sectorDataContainer;
   return sectorData;
 }
 function getSystem(hexKey) {
@@ -2091,38 +2075,38 @@ function openTab(event) {
   // Declare all variables
   let i, tabContent, tabLinks;
   // Get all elements with class="" and hide them
-  tabContent = document.getElementsByClassName("tab-content");
+  tabContent = document.getElementsByClassName('tab-content');
   for (i = 0; i < tabContent.length; i++) {
-    tabContent[i].style.display = "none";
+    tabContent[i].style.display = 'none';
   }
   // Get all elements with class="tabLinks" and remove the class "active"
-  tabLinks = document.getElementsByClassName("tab-links");
+  tabLinks = document.getElementsByClassName('tab-links');
   for (i = 0; i < tabLinks.length; i++) {
-    tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+    tabLinks[i].className = tabLinks[i].className.replace(' active', '');
   }
   //Creates tab content if not already created
   // Show the current tab, and add an "active" class to the button that opened the tab
   let activeTab = event.target.id;
   let tab = document.getElementById(activeTab);
-  tab.className += " active";
+  tab.className += ' active';
   if (activeTab != undefined) {
-    activeTab += "-content";
-    document.getElementById(activeTab).style.display = "block";
+    activeTab += '-content';
+    document.getElementById(activeTab).style.display = 'block';
     //this might not be working either way
   }
 }
 function generateInfoBox(tableData) {
-  let container = document.getElementById("content-container");
-  let infoBox = document.getElementById("system-information-content");
+  let container = document.getElementById('content-container');
+  let infoBox = document.getElementById('system-information-content');
   if (infoBox === undefined || infoBox === null) {
-    infoBox = document.createElement("div");
-    infoBox.setAttribute("id", "system-information-content");
+    infoBox = document.createElement('div');
+    infoBox.setAttribute('id', 'system-information-content');
   }
 
   //Creates table
-  let displayTable = document.createElement("table");
-  displayTable.setAttribute("class", "info-table");
-  displayTable.setAttribute("id", "all-systems-table");
+  let displayTable = document.createElement('table');
+  displayTable.setAttribute('class', 'info-table');
+  displayTable.setAttribute('id', 'all-systems-table');
 
   //Populates rows:
   let labels = [];
@@ -2146,16 +2130,16 @@ function generateInfoBox(tableData) {
 function generateTradeBox(data) {
   let supply = data.tradeInfo.supply;
   let demand = data.tradeInfo.demand;
-  let container = document.getElementById("content-container");
-  let tradeBox = document.getElementById("system-trade-content");
+  let container = document.getElementById('content-container');
+  let tradeBox = document.getElementById('system-trade-content');
   if (tradeBox === null) {
-    tradeBox = document.createElement("div");
-    tradeBox.setAttribute("id", "system-trade-content");
+    tradeBox = document.createElement('div');
+    tradeBox.setAttribute('id', 'system-trade-content');
   }
   //Creates table
-  let displayTable = document.createElement("table");
-  let tblbody = document.createElement("tbody");
-  displayTable.setAttribute("class", "info-table");
+  let displayTable = document.createElement('table');
+  let tblbody = document.createElement('tbody');
+  displayTable.setAttribute('class', 'info-table');
 
   //Populates rows:
   let supplyIndex = [];
@@ -2187,13 +2171,13 @@ function generateTradeBox(data) {
   });
 
   //Create Headings:
-  let headingRow = document.createElement("tr");
-  let label1Cell = document.createElement("td");
-  let label1CellText = document.createTextNode("Trade Goods");
-  let label2Cell = document.createElement("td");
-  let label2CellText = document.createTextNode("Supply");
-  let label3Cell = document.createElement("td");
-  let label3CellText = document.createTextNode("Demand");
+  let headingRow = document.createElement('tr');
+  let label1Cell = document.createElement('td');
+  let label1CellText = document.createTextNode('Trade Goods');
+  let label2Cell = document.createElement('td');
+  let label2CellText = document.createTextNode('Supply');
+  let label3Cell = document.createElement('td');
+  let label3CellText = document.createTextNode('Demand');
   label1Cell.appendChild(label1CellText);
   label2Cell.appendChild(label2CellText);
   label3Cell.appendChild(label3CellText);
@@ -2202,10 +2186,10 @@ function generateTradeBox(data) {
   headingRow.appendChild(label3Cell);
   tblbody.appendChild(headingRow);
   for (let i = 0; i < goodsList.length; i++) {
-    let row = document.createElement("tr");
-    let goodsListCell = document.createElement("td");
-    let supplyIndexCell = document.createElement("td");
-    let demandIndexCell = document.createElement("td");
+    let row = document.createElement('tr');
+    let goodsListCell = document.createElement('td');
+    let supplyIndexCell = document.createElement('td');
+    let demandIndexCell = document.createElement('td');
     let goodsListText = document.createTextNode(goodsList[i]);
     let supplyItem = supplyIndex.find(({
       index
@@ -2213,8 +2197,8 @@ function generateTradeBox(data) {
     let demandItem = demandIndex.find(({
       index
     }) => index === i);
-    let supplyPriceText = document.createTextNode("Not available");
-    let demandPriceText = document.createTextNode("Not needed");
+    let supplyPriceText = document.createTextNode('Not available');
+    let demandPriceText = document.createTextNode('Not needed');
     if (supplyItem) {
       supplyPriceText = document.createTextNode(`${supplyItem.amount} units, at ${supplyItem.price} per unit`);
     }
@@ -2227,7 +2211,7 @@ function generateTradeBox(data) {
     row.appendChild(goodsListCell);
     row.appendChild(supplyIndexCell);
     row.appendChild(demandIndexCell);
-    if (!(supplyPriceText.textContent === "Not available" && demandPriceText.textContent === "Not needed")) {
+    if (!(supplyPriceText.textContent === 'Not available' && demandPriceText.textContent === 'Not needed')) {
       tblbody.appendChild(row);
     }
   }
@@ -2238,21 +2222,21 @@ function generateTradeBox(data) {
 //Bring into standard with above table
 //Currently not working
 function allSystemsTable(systemsList) {
-  let systemsBox = document.getElementById("all-systems-content");
+  let systemsBox = document.getElementById('all-systems-content');
   //Creates table
-  let displayTable = document.createElement("table");
-  document.getElementById("content-container").style.height = `${document.getElementById("svg-container").offsetHeight}px`;
-  displayTable.setAttribute("class", "info-table");
-  displayTable.setAttribute("id", "all-systems-table");
+  let displayTable = document.createElement('table');
+  document.getElementById('content-container').style.height = `${document.getElementById('svg-container').offsetHeight}px`;
+  displayTable.setAttribute('class', 'info-table');
+  displayTable.setAttribute('id', 'all-systems-table');
   systemsBox.appendChild(displayTable);
   //Creates headings - Maybe there's a better way of doing it?
   let headings = displayTable.insertRow(0);
   let headingHex = headings.insertCell(0);
-  headingHex.innerHTML = "Hex";
+  headingHex.innerHTML = 'Hex';
   let headingName = headings.insertCell(1);
-  headingName.innerHTML = "Name";
+  headingName.innerHTML = 'Name';
   let headingUWP = headings.insertCell(2);
-  headingUWP.innerHTML = "UWP";
+  headingUWP.innerHTML = 'UWP';
 
   //Creates rows
   for (let i = 1; i <= systemsList.length; i++) {
@@ -2260,13 +2244,13 @@ function allSystemsTable(systemsList) {
     let listItem = systemsList[i - 1][1];
     let row = displayTable.insertRow(i);
     let hex = row.insertCell(0);
-    hex.setAttribute("class", "allSystemsCell");
+    hex.setAttribute('class', 'allSystemsCell');
     let name = row.insertCell(1);
-    name.setAttribute("class", "allSystemsCell");
+    name.setAttribute('class', 'allSystemsCell');
     let uwp = row.insertCell(2);
-    uwp.setAttribute("class", "allSystemsCell");
-    row.setAttribute("id", `Row: ${listKey}`);
-    row.setAttribute("class", "allSystemsRow");
+    uwp.setAttribute('class', 'allSystemsCell');
+    row.setAttribute('id', `Row: ${listKey}`);
+    row.setAttribute('class', 'allSystemsRow');
     let relatedHex;
     row.onmouseover = event => {
       let selectedRowHex = event.currentTarget.id;
@@ -2274,9 +2258,9 @@ function allSystemsTable(systemsList) {
       relatedHex = getSystem(hexKey);
       let rowCells = event.currentTarget.childNodes;
       rowCells.forEach(function (cell) {
-        cell.setAttribute("class", "allSystemsCellHover");
+        cell.setAttribute('class', 'allSystemsCellHover');
       });
-      document.getElementById(`${relatedHex.id}`).setAttribute("class", "hover-hex");
+      document.getElementById(`${relatedHex.id}`).setAttribute('class', 'hover-hex');
       //this doesn't leave the original hex as clicked-hex
     };
     row.onmouseout = event => {
@@ -2285,16 +2269,16 @@ function allSystemsTable(systemsList) {
       relatedHex = getSystem(hexKey);
       let rowCells = event.currentTarget.childNodes;
       rowCells.forEach(function (cell) {
-        cell.setAttribute("class", "allSystemsCell");
+        cell.setAttribute('class', 'allSystemsCell');
       });
       let relatedHexPolygon = document.getElementById(`${relatedHex.id}`);
-      if (relatedHexPolygon.getAttribute("class") != "clicked-hex") {
-        relatedHexPolygon.setAttribute("class", "hex");
+      if (relatedHexPolygon.getAttribute('class') != 'clicked-hex') {
+        relatedHexPolygon.setAttribute('class', 'hex');
       }
     };
     row.onclick = function () {
       relatedHex.hexOnClick(relatedHex);
-      document.getElementById(`${relatedHex.id}`).setAttribute("class", "clicked-hex");
+      document.getElementById(`${relatedHex.id}`).setAttribute('class', 'clicked-hex');
     };
     hex.innerHTML = listItem.hex;
     name.innerHTML = listItem.name;
@@ -2394,8 +2378,8 @@ var __webpack_exports__ = {};
   !*** ./src/view.js ***!
   \*********************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _modules_mapCode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/mapCode.js */ "./src/modules/mapCode.js");
-/* harmony import */ var _modules_simulation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/simulation.js */ "./src/modules/simulation.js");
+/* harmony import */ var _modules_mapCode__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/mapCode */ "./src/modules/mapCode.js");
+/* harmony import */ var _modules_simulation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/simulation */ "./src/modules/simulation.js");
 /**
  * Use this file for JavaScript code that you want to run in the front-end
  * on posts/pages that contain this block.
@@ -2419,11 +2403,12 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 /* eslint-disable no-console */
+console.log('Hello World! (from create-block-hex-map-plugin block)');
 
 
-document.getElementById("generator-button").addEventListener('click', _modules_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.generateMap);
-document.getElementById("reset-button").addEventListener('click', _modules_mapCode_js__WEBPACK_IMPORTED_MODULE_0__.resetMap);
-document.getElementById("run-button").addEventListener('click', _modules_simulation_js__WEBPACK_IMPORTED_MODULE_1__.runTradeSimulation);
+document.getElementById('generator-button').addEventListener("click", _modules_mapCode__WEBPACK_IMPORTED_MODULE_0__.generateMap);
+document.getElementById('reset-button').addEventListener("click", _modules_mapCode__WEBPACK_IMPORTED_MODULE_0__.resetMap);
+document.getElementById('run-button').addEventListener("click", _modules_simulation__WEBPACK_IMPORTED_MODULE_1__.runTradeSimulation);
 /* eslint-enable no-console */
 /******/ })()
 ;

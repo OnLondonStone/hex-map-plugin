@@ -21,9 +21,10 @@
  */
 
 /* eslint-disable no-console */
-import {generateMap, resetMap} from "./modules/mapCode.js";
-import { runTradeSimulation } from "./modules/simulation.js";
-document.getElementById("generator-button").addEventListener('click', generateMap);
-document.getElementById("reset-button").addEventListener('click', resetMap);
-document.getElementById("run-button").addEventListener('click', runTradeSimulation);
+console.log( 'Hello World! (from create-block-hex-map-plugin block)' );
+import { generateMap, resetMap } from "./modules/mapCode";
+import { runTradeSimulation } from "./modules/simulation";
+document.getElementById('generator-button').addEventListener("click", generateMap);
+document.getElementById('reset-button').addEventListener("click", resetMap)
+document.getElementById('run-button').addEventListener("click", runTradeSimulation)
 /* eslint-enable no-console */

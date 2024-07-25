@@ -2,6 +2,8 @@
 /**
  * @see https://github.com/WordPress/gutenberg/blob/trunk/docs/reference-guides/block-api/block-metadata.md#render
  */
+add_action( 'wp_enqueue_scripts', 'mapCode_enqueue_script' );
+
 ?>
 <div <?php echo get_block_wrapper_attributes(); ?> class="container" id="map-block">
 <div id="map-block-container">

@@ -27,7 +27,20 @@
  */
 function create_block_hex_map_block_block_init() {
 	register_block_type( __DIR__ . '/build' );
+
 }
+
+function mapCode_enqueue_script() {
+	wp_enqueue_script( 'map-code', 'src\modules\mapCode.js', false );
+	}
+
 add_action( 'init', 'create_block_hex_map_block_block_init' );
+
+
+
+
+
+
+
 
 

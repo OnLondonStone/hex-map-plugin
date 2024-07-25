@@ -5,19 +5,18 @@
  * Replace them with your own styles or remove the file completely.
  */
 
-.wp-block-create-block-hex-map-block {
+.wp-block-create-block-hex-map-plugin {
+	background-color: #21759b;
+	color: #fff;
+    border:#C4FFF9;
+    border-width: 1em;
 }
-
 #map-block-container{
     display: inline-flex;
     align-self: center;
     text-align: center;
     background-color: #888 ;
-	color: #fff;
-    border:#C4FFF9;
-    border-width: 1em;
 }
-
 #hex-container{
     margin:1em;
 }
@@ -57,6 +56,7 @@ g.hex-group{
 .map-block{
     display: inline-block;
     vertical-align: top;
+	padding: 2px;
 }
 
 .tab-content{
